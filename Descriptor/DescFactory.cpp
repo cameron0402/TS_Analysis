@@ -43,6 +43,22 @@
 #include "TelephoneDesc.h"
 #include "LocalTimeOffsetDesc.h"
 #include "SubtitlingDesc.h"
+#include "TerrestrialDeliverySystemDesc.h"
+#include "MultilingualNetworkNameDesc.h"
+#include "MultilingualBouquetNameDesc.h"
+#include "MultilingualServiceNameDesc.h"
+#include "MultilingualComponentDesc.h"
+#include "PrivateDataSpecifierDesc.h"
+#include "ServiceMoveDesc.h"
+#include "ShortSmoothingBufferDesc.h"
+#include "FrequencyListDesc.h"
+#include "PartialTransportStreamDesc.h"
+#include "DataBroadcastDesc.h"
+#include "DataBroadcastIDDesc.h"
+#include "PDCDesc.h"
+#include "AC3Desc.h"
+#include "AncillaryDataDesc.h"
+#include "AnnouncementSupportDesc.h"
 
 //##ModelId=55585690038B
 Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
@@ -95,6 +111,22 @@ Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
         case 0x57: return new TelephoneDesc(data);
         case 0x58: return new LocalTimeOffsetDesc(data);
         case 0x59: return new SubtitlingDesc(data);
+        case 0x5A: return new TerrestrialDeliverySystemDesc(data);
+        case 0x5B: return new MultilingualNetworkNameDesc(data);
+        case 0x5C: return new MultilingualBouquetNameDesc(data);
+        case 0x5D: return new MultilingualServiceNameDesc(data);
+        case 0x5E: return new MultilingualComponentDesc(data);
+        case 0x5F: return new PrivateDataSpecifierDesc(data);
+        case 0x60: return new ServiceMoveDesc(data);
+        case 0x61: return new ShortSmoothingBufferDesc(data);
+        case 0x62: return new FrequencyListDesc(data);
+        case 0x63: return new PartialTransportStreamDesc(data);
+        case 0x64: return new DataBroadcastDesc(data);
+        case 0x66: return new DataBroadcastIDDesc(data);
+        case 0x69: return new PDCDesc(data);
+        case 0x6A: return new AC3Desc(data);
+        case 0x6B: return new AncillaryDataDesc(data);
+        case 0x6E: return new AnnouncementSupportDesc(data);
         default: break;
     }
 

@@ -10,7 +10,7 @@ TeletextDesc::TeletextDesc(uint8_t* data) : Descriptor(data)
 {
     int index = 2;
     TextInfo tmp;
-    while(index < length + 1)
+    while(index < length + 2)
     {
         memcpy(tmp.ISO6392_language, data + index, 3);
         tmp.teletext_type = data[index + 3] >> 3;

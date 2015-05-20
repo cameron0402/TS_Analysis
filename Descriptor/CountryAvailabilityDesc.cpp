@@ -12,7 +12,7 @@ CountryAvailabilityDesc::CountryAvailabilityDesc(uint8_t* data)
 {
     CountryCode tmp;
     int index = 3;
-    while(index < length + 1)
+    while(index < length + 2)
     {
         memcpy(tmp.country_code, data + index, 3);
         country_list.push_back(tmp);

@@ -9,7 +9,7 @@ CAIdentifierDesc::CAIdentifierDesc()
 CAIdentifierDesc::CAIdentifierDesc(uint8_t* data) : Descriptor(data)
 {
     int index = 2;
-    while(index < length + 1)
+    while(index < length + 2)
     {
         CA_id_list.push_back((data[index] << 8) | data[index + 1]);
         index += 2;

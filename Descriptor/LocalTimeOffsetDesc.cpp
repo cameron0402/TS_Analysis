@@ -10,7 +10,7 @@ LocalTimeOffsetDesc::LocalTimeOffsetDesc(uint8_t* data) : Descriptor(data)
 {
     TimeOffsetInfo tmp;
     int index = 2;
-    while(index < length + 1)
+    while(index < length + 2)
     {
         memcpy(tmp.country_code, data + index, 3);
         tmp.country_region_id = data[index + 4] >> 2;

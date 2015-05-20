@@ -10,7 +10,7 @@ NVODReferenceDesc::NVODReferenceDesc(uint8_t* data) : Descriptor(data)
 {
     NVODReferInfo tmp;
     int index = 2;
-    while(index < length + 1)
+    while(index < length + 2)
     {
         tmp.transport_stream_id = (data[index] << 8) | data[index + 1];
         tmp.original_network_id = (data[index + 2] << 8) | data[index + 3];

@@ -10,7 +10,7 @@ ContentDesc::ContentDesc(uint8_t* data) : Descriptor(data)
 {
     int index = 2;
     ContentInfo tmp;
-    while(index < length + 1)
+    while(index < length + 2)
     {
         tmp.content_nibble_level_1 = data[index] >> 4;
         tmp.content_nibble_level_2 = data[index] & 0x0F;

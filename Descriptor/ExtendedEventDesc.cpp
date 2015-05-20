@@ -13,10 +13,10 @@ ExtendedEventDesc::ExtendedEventDesc(uint8_t* data)
       length_of_items(data[6])
 {
     memcpy(ISO6392_language, data + 3, 3);
-    ItemInfo tmp;
     int index = 0;
     while(index < length_of_items)
     {
+        ItemInfo tmp;
         tmp.item_description_length = data[7 + index];
         tmp.item_description = new uint8_t[tmp.item_description_length];
         memcpy(tmp.item_description, data + 8 + index, tmp.item_description_length);

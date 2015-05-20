@@ -14,7 +14,7 @@ MosaicDesc::MosaicDesc(uint8_t* data)
 {
     int index = 3;
     MosaicInfo tmp;
-    while(index < length + 1)
+    while(index < length + 2)
     {
         tmp.logical_cell_id = data[index] >> 2;
         tmp.logical_cell_presentation_info = data[index + 1] & 0x07;

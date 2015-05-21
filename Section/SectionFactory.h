@@ -13,7 +13,7 @@ class SectionFactory
     void add(Section* sc);
 
     //##ModelId=555550B4016A
-    virtual Section* createSectoin(int32_t type, void* data, int32_t len);
+    virtual Section* createSectoin(int32_t type, uint8_t* data, int32_t len);
 
     //##ModelId=5555977903C2
     static SectionFactory* GetInstance();

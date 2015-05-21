@@ -1,7 +1,6 @@
-#ifndef PMT_H_HEADER_INCLUDED_AAAA79D3
-#define PMT_H_HEADER_INCLUDED_AAAA79D3
+#ifndef PMT_H_HEADER_INCLUDED_AAAA7F38
+#define PMT_H_HEADER_INCLUDED_AAAA7F38
 #include "Section.h"
-#include <list>
 class Descriptor;
 
 //##ModelId=555569F70169
@@ -12,8 +11,17 @@ class PMT : public Section
     class StreamInfo
     {
       public:
+        //##ModelId=555D7D58002F
+        StreamInfo();
+
         // stream_type
+        //##ModelId=555D7D6A03E1
+        StreamInfo(uint8_t* data);
+
         //##ModelId=55558250017E
+        //##ModelId=555D7D6D016C
+        virtual ~StreamInfo();
+
         uint8_t type;
         // elementary_PID
         //##ModelId=5555826F0328
@@ -29,18 +37,21 @@ class PMT : public Section
     PMT();
 
     //##ModelId=55556B820369
-    PMT(void* data, uint16_t len);
-
+    PMT(uint8_t* data, uint16_t len);
+    //##ModelId=5558288B00A9
     virtual ~PMT();
+
 
     //##ModelId=55556A4E0217
     uint16_t PCR_PID;
     //##ModelId=55556A820381
     uint16_t program_info_length;
     //##ModelId=55556ACF0381
-    std::list<StreamInfo> stream_list;
+    std::list<StreamInfo*> stream_list;
+    //##ModelId=555D747E003D
+    std::list<Descriptor*> desc_list;
 };
 
 
 
-#endif /* PMT_H_HEADER_INCLUDED_AAAA79D3 */
+#endif /* PMT_H_HEADER_INCLUDED_AAAA7F38 */

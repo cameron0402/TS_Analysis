@@ -12,7 +12,7 @@ class CAT : public Section
     CAT();
 
     //##ModelId=55558B3E03C8
-    CAT(void* data, uint16_t len);
+    CAT(uint8_t* data, uint16_t len);
 
     virtual ~CAT();
 

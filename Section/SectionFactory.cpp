@@ -1,5 +1,9 @@
 #include "SectionFactory.h"
 #include "Section.h"
+#include "PAT.h"
+#include "PMT.h"
+#include "CAT.h"
+#include "NIT.h"
 
 SectionFactory* SectionFactory::_instance = NULL;
 
@@ -9,8 +13,20 @@ void SectionFactory::add(Section* sc)
 }
 
 //##ModelId=555550B4016A
-Section* SectionFactory::createSectoin(int32_t type, void* data, int32_t len)
+Section* SectionFactory::createSectoin(int32_t type, uint8_t* data, int32_t len)
 {
+    switch(type)
+    {
+        case 0x00: return new PAT(data, len);
+        case 0x01: return new CAT(data, len);
+        case 0x10:
+        {
+            if(data[0] == 0x40 || data[1] == 0x41) 
+                return new NIT(data, len);
+            else 
+                break;
+        }
+    }
     return NULL;
 }
 

@@ -58,7 +58,14 @@
 #include "PDCDesc.h"
 #include "AC3Desc.h"
 #include "AncillaryDataDesc.h"
+#include "CellListDesc.h"
+#include "CellFrequencyLinkDesc.h"
 #include "AnnouncementSupportDesc.h"
+#include "AdaptationFieldDataDesc.h"
+#include "S2SatelliteDeliverySystemDesc.h"
+#include "DTSAudioStreamDesc.h"
+#include "AACDesc.h"
+#include "ExtensionDesc.h"
 
 //##ModelId=55585690038B
 Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
@@ -126,10 +133,44 @@ Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
         case 0x69: return new PDCDesc(data);
         case 0x6A: return new AC3Desc(data);
         case 0x6B: return new AncillaryDataDesc(data);
+        case 0x6C: return new CellListDesc(data);
+        case 0x6D: return new CellFrequencyLinkDesc(data);
         case 0x6E: return new AnnouncementSupportDesc(data);
-        default: break;
+        case 0x70: return new AdaptationFieldDataDesc(data);
+        case 0x79: return new S2SatelliteDeliverySystemDesc(data);
+        case 0x7B: return new DTSAudioStreamDesc(data);
+        case 0x7C: return new AACDesc(data);
+        case 0x7F: return new ExtensionDesc(data);
+        
+        //descriptors that can't find definitions
+        case 0x6F: //Application_signalling_descriptor
+        case 0x71: //Service_identifier_descriptor
+        case 0x72: //Service_availability_descriptor
+        case 0x73: //default_authority_descriptor
+        case 0x74: //related_content_descriptor
+        case 0x75: //TVA_id_descriptor
+        case 0x76: //content_identifier_descriptor
+        case 0x77: //time_slice_fec_identifier_descriptor
+        case 0x78: //ECM_repetition_rate_descriptor
+        case 0x7A: //enhanced_AC-3_descriptor
+
+        //ATSC descriptors, user private, also can't find definitions
+        case 0x81: //AC3_audio_descriptor
+        case 0x82: //SCTE Frame_rate_descriptor
+        case 0x83: //SCTE Extended_video_descriptor
+        case 0x84: //SCTE Component_name_descriptor
+        case 0x85: //ATSC program_identifier
+        case 0x86: //Caption_service_descriptor
+        case 0x87: //Content_advisory_descriptor
+        case 0x88: //ATSC CA_descriptor
+        case 0x93: //SCTE Revision detection descriptor
+        case 0xA3: //component_name_descriptor
+        case 0xAA: //ATSC rc_descriptor
+
+        default: 
+            break;
     }
 
-    return NULL;
+    return new Descriptor(data);
 }
 

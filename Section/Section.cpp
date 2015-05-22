@@ -25,8 +25,9 @@ Section::~Section()
 }
 
 //##ModelId=5555540B00A0
-void Section::joinTo(SectionFactory& sf)
+bool Section::joinTo(SectionFactory& sf)
 {
+    return false;
 }
 
 //##ModelId=555561E1025F

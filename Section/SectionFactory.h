@@ -1,25 +1,44 @@
 #ifndef SECTIONFACTORY_H_HEADER_INCLUDED_AAAA5AA3
 #define SECTIONFACTORY_H_HEADER_INCLUDED_AAAA5AA3
-class Section;
 
 #include "../def.h"
+class Section;
+class PMT;
+class PAT;
+class NIT;
+class CAT;
+class SectionData;
 
 //##ModelId=55554FBB02A9
 class SectionFactory
 {
-    
   public:
     //##ModelId=5555501D00F6
-    void add(Section* sc);
+    bool addSection(Section* section);
 
     //##ModelId=555550B4016A
-    virtual Section* createSectoin(int32_t type, uint8_t* data, int32_t len);
+    virtual Section* createSectoin(SectionData* raw_section);
 
     //##ModelId=5555977903C2
     static SectionFactory* GetInstance();
 
+    void sectionGather(uint8_t* ts_packet);
+
+    virtual ~SectionFactory();
+
     //##ModelId=55554FD7004E
-    std::list<Section*> slist;
+    std::list<PMT*> pmt_list;
+    //##ModelId=555EC4BE00E8
+    PAT* pat;
+  
+    //##ModelId=555EC4CC023F
+    std::list<NIT*> nit_list;
+  
+    //##ModelId=555EC4EC006E
+    std::list<CAT*> cat_list;
+  
+    //##ModelId=555EC50E007F
+    SectionData* raw_section;
   private:
     //##ModelId=555597630041
     SectionFactory();

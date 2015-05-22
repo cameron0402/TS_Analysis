@@ -11,7 +11,7 @@ class Section
     Section(uint8_t* data, uint16_t len);
     virtual ~Section();
     //##ModelId=5555540B00A0
-    virtual void joinTo(SectionFactory& sf);
+    virtual bool joinTo(SectionFactory& sf);
 
     //##ModelId=555561E1025F
     virtual void resolved();

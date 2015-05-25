@@ -1,4 +1,5 @@
 #include "PAT.h"
+#include "SectionFactory.h"
 
 //##ModelId=55555EB90262
 PAT::PAT()
@@ -6,7 +7,14 @@ PAT::PAT()
 }
 
 //##ModelId=55555EC7002C
-PAT::PAT(uint8_t* data, uint16_t len) : Section(data, len)
+PAT::PAT(uint8_t* data, uint16_t len) 
+    : Section(data, len),
+      transport_stream_id((data[3] << 8) | data[4]), 
+      version_number((data[5] >> 1) & 0x1F),
+      current_next_indicator(data[5] >> 7),
+      section_number(data[6]),
+      last_section_number(data[7]),
+      crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
     int index = 8;
     while(index < len - 4)
@@ -43,5 +51,20 @@ PAT::ProgInfo::ProgInfo(uint8_t* data)
 //##ModelId=555D78EE02D5
 PAT::ProgInfo::~ProgInfo()
 {
+}
+
+bool PAT::joinTo(SectionFactory* sf)
+{
+    if(sf->pat == NULL)
+    {
+        sf->pat = this;
+        return true;
+    }
+    return false;
+}
+
+bool PAT::operator==(const PAT& pt)
+{
+    return crc32 == pt.crc32;
 }
 

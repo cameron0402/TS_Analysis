@@ -1,4 +1,5 @@
 #include "PMT.h"
+#include "SectionFactory.h"
 #include "../Descriptor/DescFactory.h"
 #include "../Descriptor/Descriptor.h"
 
@@ -10,8 +11,14 @@ PMT::PMT()
 //##ModelId=55556B820369
 PMT::PMT(uint8_t* data, uint16_t len)
     : Section(data, len),
+      program_number((data[3] << 8) | data[4]), 
+      version_number((data[5] >> 1) & 0x1F),
+      current_next_indicator(data[5] >> 7),
+      section_number(data[6]),
+      last_section_number(data[7]),
       PCR_PID(((data[8] & 0x1F) << 8) | data[9]),
-      program_info_length(((data[10] & 0x0F) << 8) | data[11])
+      program_info_length(((data[10] & 0x0F) << 8) | data[11]),
+      crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
     int index = 0;
     uint8_t* sub_data = data + 12;
@@ -81,5 +88,22 @@ PMT::StreamInfo::~StreamInfo()
         delete (*dit);
     }
     desc_list.clear();
+}
+
+bool PMT::joinTo(SectionFactory* sf)
+{
+    std::list<PMT*>::iterator pit;
+    for(pit = sf->pmt_list.begin(); pit != sf->pmt_list.end(); ++pit)
+    {
+        if(*(*pit) == *this)
+            return false;
+    }
+    sf->pmt_list.push_back(this);
+    return true;
+}
+
+bool PMT::operator==(const PMT& pt)
+{
+    return crc32 == pt.crc32;
 }
 

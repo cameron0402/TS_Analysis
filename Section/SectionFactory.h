@@ -7,6 +7,7 @@ class PMT;
 class PAT;
 class NIT;
 class CAT;
+class BAT;
 class SectionData;
 
 //##ModelId=55554FBB02A9
@@ -36,6 +37,8 @@ class SectionFactory
   
     //##ModelId=555EC4EC006E
     std::list<CAT*> cat_list;
+
+    std::list<BAT*> bat_list;
   
     //##ModelId=555EC50E007F
     SectionData* raw_section;

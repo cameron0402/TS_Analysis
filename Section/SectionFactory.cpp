@@ -11,7 +11,7 @@ SectionFactory* SectionFactory::_instance = NULL;
 //##ModelId=5555501D00F6
 bool SectionFactory::addSection(Section* section)
 {
-    return section->joinTo(*this);
+    return section->joinTo(this);
 }
 
 void SectionFactory::sectionGather(uint8_t* ts_packet)
@@ -163,6 +163,7 @@ SectionFactory::SectionFactory()
       pmt_list(0),
       nit_list(0),
       cat_list(0),
+      bat_list(0),
       raw_section(new SectionData())
 {
 }
@@ -192,6 +193,13 @@ SectionFactory::~SectionFactory()
         delete (*nit);
     }
     nit_list.clear();
+
+    std::list<BAT*>::iterator bit;
+    for(bit = bat_list.begin(); bit != bat_list.end(); ++bit)
+    {
+        delete (*bit);
+    }
+    bat_list.clear();
 
     delete raw_section;
 }

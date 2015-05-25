@@ -1,4 +1,5 @@
 #include "NIT.h"
+#include "SectionFactory.h"
 #include "../Descriptor/Descriptor.h"
 #include "../Descriptor/DescFactory.h"
 
@@ -10,8 +11,14 @@ NIT::NIT()
 //##ModelId=55558761023E
 NIT::NIT(uint8_t* data, uint16_t len)
     : Section(data, len),
+      network_id((data[3] << 8) | data[4]), 
+      version_number((data[5] >> 1) & 0x1F),
+      current_next_indicator(data[5] >> 7),
+      section_number(data[6]),
+      last_section_number(data[7]),
       network_descriptors_length(((data[8] & 0x0F) << 8) | data[9]),
-      transport_stream_loop_length(((data[10 + network_descriptors_length] & 0x0F) << 8) | data[11 + network_descriptors_length])
+      transport_stream_loop_length(((data[10 + network_descriptors_length] & 0x0F) << 8) | data[11 + network_descriptors_length]),
+      crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
     int index = 0;
     uint8_t* sub_data = data + 10;
@@ -82,5 +89,22 @@ NIT::TransStreamInfo::~TransStreamInfo()
         delete (*dit);
     }
     desc_list.clear();
+}
+
+bool NIT::joinTo(SectionFactory* sf)
+{
+    std::list<NIT*>::iterator nit;
+    for(nit = sf->nit_list.begin(); nit != sf->nit_list.end(); ++nit)
+    {
+        if(*(*nit) == *this)
+            return false;
+    }
+    sf->nit_list.push_back(this);
+    return true;
+}
+
+bool NIT::operator ==(const NIT& nt)
+{
+    return crc32 == nt.crc32;
 }
 

@@ -14,7 +14,7 @@ class NIT : public Section
         //##ModelId=555D8D48003E
         TransStreamInfo();
 
-        //##ModelId=55558677030F
+        //##ModelId=555D8D580325
         //##ModelId=555D8D580325
         TransStreamInfo(uint8_t* data);
 
@@ -22,6 +22,7 @@ class NIT : public Section
         //##ModelId=555D8D5B00B0
         virtual ~TransStreamInfo();
 
+        //##ModelId=55558677030F
         uint16_t transport_stream_id;
         //##ModelId=55558698006F
         uint16_t original_network_id;
@@ -38,7 +39,18 @@ class NIT : public Section
     NIT(uint8_t* data, uint16_t len);
     //##ModelId=555828A60271
     virtual ~NIT();
-
+    virtual bool joinTo(SectionFactory* sf);
+    bool operator ==(const NIT& nt);
+    //##ModelId=5562978900BC
+    uint16_t network_id;
+    //##ModelId=5562979C021E
+    uint8_t version_number;
+    //##ModelId=556298BB011B
+    bool current_next_indicator;
+    //##ModelId=556297AF0252
+    uint8_t section_number;
+    //##ModelId=556297C00002
+    uint8_t last_section_number;
 
     //##ModelId=555584FE01EE
     uint16_t network_descriptors_length;
@@ -48,6 +60,9 @@ class NIT : public Section
     uint16_t transport_stream_loop_length;
     //##ModelId=555D8D18028A
     std::list<TransStreamInfo*> streaminfo_list;
+    //##ModelId=5562990C0113
+    uint32_t crc32;
+    
 };
 
 

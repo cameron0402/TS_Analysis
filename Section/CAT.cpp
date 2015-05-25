@@ -1,4 +1,5 @@
 #include "CAT.h"
+#include "SectionFactory.h"
 #include "../Descriptor/Descriptor.h"
 #include "../Descriptor/DescFactory.h"
 
@@ -8,7 +9,13 @@ CAT::CAT()
 }
 
 //##ModelId=55558B3E03C8
-CAT::CAT(uint8_t* data, uint16_t len) : Section(data, len)
+CAT::CAT(uint8_t* data, uint16_t len) 
+    : Section(data, len),
+      version_number((data[5] >> 1) & 0x1F),
+      current_next_indicator(data[5] >> 7),
+      section_number(data[6]),
+      last_section_number(data[7]),
+      crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
     int index = 8;
     DescFactory des_fac;
@@ -28,5 +35,23 @@ CAT::~CAT()
         delete (*dit);
     }
     desc_list.clear();
+}
+
+
+bool CAT::joinTo(SectionFactory* sf)
+{
+    std::list<CAT*>::iterator cit;
+    for(cit = sf->cat_list.begin(); cit != sf->cat_list.end(); ++cit)
+    {
+        if(*(*cit) == *this)
+            return false;
+    }
+    sf->cat_list.push_back(this);
+    return true;
+}
+
+bool CAT::operator==(const CAT& ct)
+{
+    return crc32 == ct.crc32;
 }
 

@@ -14,14 +14,15 @@ class PMT : public Section
         //##ModelId=555D7D58002F
         StreamInfo();
 
-        // stream_type
         //##ModelId=555D7D6A03E1
         StreamInfo(uint8_t* data);
 
-        //##ModelId=55558250017E
+        //##ModelId=555D7D6D016C
         //##ModelId=555D7D6D016C
         virtual ~StreamInfo();
 
+        // stream_type
+        //##ModelId=55558250017E
         uint8_t type;
         // elementary_PID
         //##ModelId=5555826F0328
@@ -41,6 +42,19 @@ class PMT : public Section
     //##ModelId=5558288B00A9
     virtual ~PMT();
 
+    virtual bool joinTo(SectionFactory* sf);
+    bool operator ==(const PMT& pt);
+
+    //##ModelId=5562969D029A
+    uint16_t program_number;
+    //##ModelId=5562989F030C
+    bool current_next_indicator;
+    //##ModelId=556296B303D2
+    uint8_t version_number;
+    //##ModelId=556296DA0299
+    uint8_t section_number;
+    //##ModelId=5562971A00DC
+    uint8_t last_section_number;
 
     //##ModelId=55556A4E0217
     uint16_t PCR_PID;
@@ -50,6 +64,9 @@ class PMT : public Section
     std::list<StreamInfo*> stream_list;
     //##ModelId=555D747E003D
     std::list<Descriptor*> desc_list;
+    
+    //##ModelId=5562973302FB
+    uint32_t crc32;
 };
 
 

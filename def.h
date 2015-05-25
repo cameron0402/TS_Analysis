@@ -1,6 +1,7 @@
 #include <list>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 
 typedef unsigned char uint8_t;

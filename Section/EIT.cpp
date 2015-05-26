@@ -59,7 +59,7 @@ EIT::EIT(uint8_t* data, uint16_t len)
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
     int index = 14;
-    while(index < len)
+    while(index < len - 4)
     {
         EventInfo* ei = new EventInfo(data + index);
         event_list.push_back(ei);

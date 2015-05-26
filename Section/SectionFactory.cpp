@@ -8,6 +8,7 @@
 #include "BAT.h"
 #include "SDT.h"
 #include "EIT.h"
+#include "TDT.h"
 
 SectionFactory* SectionFactory::_instance = NULL;
 
@@ -162,6 +163,12 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
            (data[0] <= 0x6F && data[0] >= 0x50))
            return new EIT(data, len);
     }
+
+    if(type == 0x14)
+    {
+        if(data[0] == 0x70)
+            return new TDT(data, len);
+    }
     
     return NULL;
 }
@@ -185,6 +192,8 @@ SectionFactory::SectionFactory()
       bat_list(0),
       sdt_list(0),
       eit_list(0),
+      tdt(NULL),
+      tot(NULL),
       raw_section(new SectionData())
 {
 }
@@ -235,6 +244,12 @@ SectionFactory::~SectionFactory()
         delete (*eit);
     }
     eit_list.clear();
+
+    if(tdt != NULL)
+        delete tdt;
+
+    if(tot != NULL)
+        delete tot;
 
     delete raw_section;
 }

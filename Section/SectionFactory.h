@@ -10,6 +10,8 @@ class CAT;
 class BAT;
 class SDT;
 class EIT;
+class TDT;
+class TOT;
 class SectionData;
 
 //##ModelId=55554FBB02A9
@@ -45,6 +47,10 @@ class SectionFactory
     std::list<SDT*> sdt_list;
 
     std::list<EIT*> eit_list;
+
+    TDT* tdt;
+
+    TOT* tot;
   
     //##ModelId=555EC50E007F
     SectionData* raw_section;

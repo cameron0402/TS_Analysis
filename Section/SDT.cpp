@@ -20,7 +20,7 @@ SDT::SDT(uint8_t* data, uint16_t len)
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
     int index = 10;
-    while(index < len)
+    while(index < len - 4)
     {
         ServiceInfo* si = new ServiceInfo(data + index);
         service_list.push_back(si);

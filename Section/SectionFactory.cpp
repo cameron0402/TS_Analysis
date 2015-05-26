@@ -5,6 +5,9 @@
 #include "PMT.h"
 #include "CAT.h"
 #include "NIT.h"
+#include "BAT.h"
+#include "SDT.h"
+#include "EIT.h"
 
 SectionFactory* SectionFactory::_instance = NULL;
 
@@ -132,18 +135,34 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
     int16_t type = raw_section->PID;
     uint8_t* data = raw_section->section_data;
     uint16_t len = raw_section->section_data_length;
-    switch(type)
+    if(type == 0x00)
     {
-        case 0x00: return new PAT(data, len);
-        case 0x01: return new CAT(data, len);
-        case 0x10:
-        {
-            if(data[0] == 0x40 || data[1] == 0x41) 
-                return new NIT(data, len);
-            else 
-                break;
-        }
+        return new PAT(data, len);
     }
+    if(type == 0x01)
+    {
+        return new CAT(data, len);
+    }
+    if(type == 0x10)
+    {
+        if(data[0] == 0x40 || data[1] == 0x41) 
+            return new NIT(data, len);
+    }
+    if(type == 0x11)
+    {
+        if(data[0] == 0x4A)
+            return new BAT(data, len);
+        if(data[0] == 0x42 || data[0] == 0x46)
+            return new SDT(data, len);
+    }
+
+    if(type == 0x12)
+    {
+        if(data[0] == 0x4E || data[0] == 0x4F ||
+           (data[0] <= 0x6F && data[0] >= 0x50))
+           return new EIT(data, len);
+    }
+    
     return NULL;
 }
 
@@ -164,6 +183,8 @@ SectionFactory::SectionFactory()
       nit_list(0),
       cat_list(0),
       bat_list(0),
+      sdt_list(0),
+      eit_list(0),
       raw_section(new SectionData())
 {
 }
@@ -200,6 +221,20 @@ SectionFactory::~SectionFactory()
         delete (*bit);
     }
     bat_list.clear();
+
+    std::list<SDT*>::iterator sit;
+    for(sit = sdt_list.begin(); sit != sdt_list.end(); ++sit)
+    {
+        delete (*sit);
+    }
+    sdt_list.clear();
+
+    std::list<EIT*>::iterator eit;
+    for(eit = eit_list.begin(); eit != eit_list.end(); ++eit)
+    {
+        delete (*eit);
+    }
+    eit_list.clear();
 
     delete raw_section;
 }

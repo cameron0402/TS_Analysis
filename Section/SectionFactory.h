@@ -8,6 +8,8 @@ class PAT;
 class NIT;
 class CAT;
 class BAT;
+class SDT;
+class EIT;
 class SectionData;
 
 //##ModelId=55554FBB02A9
@@ -39,6 +41,10 @@ class SectionFactory
     std::list<CAT*> cat_list;
 
     std::list<BAT*> bat_list;
+
+    std::list<SDT*> sdt_list;
+
+    std::list<EIT*> eit_list;
   
     //##ModelId=555EC50E007F
     SectionData* raw_section;

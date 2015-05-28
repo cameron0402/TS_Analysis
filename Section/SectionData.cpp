@@ -2,7 +2,7 @@
 
 //##ModelId=555EC4060105
 SectionData::SectionData()
-    : PID(-1),
+    : PID(0xFFFF),
       section_data_length(0),
       section_data(new uint8_t[MAX_SECTION_LENGTH]),
       continuity_counter(INVALID_CC),
@@ -20,7 +20,7 @@ SectionData::~SectionData()
 //##ModelId=555EC45001F6
 void SectionData::Reset()
 {
-    PID = -1;
+    //PID = 0xFFFF;
     section_data_length = 0;
     continuity_counter = INVALID_CC;
     discontinuity_flag = false;

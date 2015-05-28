@@ -22,6 +22,9 @@ class Descriptor
     // descriptor_length
     //##ModelId=555569480198
     uint8_t length;
+
+    //for resolved
+    TiXmlElement* xml;
 };
 
 

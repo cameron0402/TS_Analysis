@@ -36,6 +36,7 @@ class PAT : public Section
     //##ModelId=55582871031A
     virtual ~PAT();
     virtual bool joinTo(SectionFactory* sf);
+    virtual void resolved();
     bool operator ==(const PAT& pt);
 
     //##ModelId=5562957100FA

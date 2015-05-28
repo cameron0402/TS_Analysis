@@ -22,7 +22,7 @@ EIT::EventInfo::EventInfo(uint8_t* data)
     DescFactory des_fac;
     while(idx < descriptors_loop_length)
     {
-        Descriptor* des = des_fac.createDesc(data[idx], data + idx);
+        Descriptor* des = des_fac.createDesc(pd[idx], pd + idx);
         desc_list.push_back(des);
         idx += des->length + 2;
     }

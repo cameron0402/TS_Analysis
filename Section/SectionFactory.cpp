@@ -46,19 +46,20 @@ void SectionFactory::sectionGather(uint8_t* ts_packet)
         if(expected_counter == ((raw_section->continuity_counter + 1) & 0xf) && 
            !raw_section->discontinuity_flag)
         {
-            std::cout << "PSI decoder TS duplicate (received " << raw_section->continuity_counter 
-                      << "expected " << expected_counter
-                      << ") for PID " << raw_section->PID << std::endl;
+            /*std::cout << "PSI decoder TS duplicate (received " << raw_section->continuity_counter
+                      << "expected " << expected_counter 
+                      << ") for PID " << raw_section->PID << std::endl;*/
             return ;
         }
 
         if(expected_counter != raw_section->continuity_counter)
         {
-            std::cout << "PSI decoder TS discontinuity (received" << raw_section->continuity_counter 
-                      << "expected " << expected_counter
-                      << ") for PID " << raw_section->PID << std::endl;
+            /*std::cout << "PSI decoder TS discontinuity (received " << raw_section->continuity_counter 
+                      << "expected " << expected_counter 
+                      << ") for PID " << raw_section->PID << std::endl;*/
             //section_data->discontinuity_flag = true;
             raw_section->Reset();
+            return ;
         }
     }
 
@@ -88,12 +89,13 @@ void SectionFactory::sectionGather(uint8_t* ts_packet)
         {
             memcpy(raw_section->section_data, payload_pos, 3);
             raw_section->recv_length += 3;
-            raw_section->section_data_length = ((payload_pos[1] & 0x1F) << 8) | payload_pos[2] + 3;
+            raw_section->section_data_length = ((payload_pos[1] & 0x0F) << 8) | payload_pos[2] + 3;
             if(raw_section->section_data_length > SectionData::MAX_SECTION_LENGTH)
             {
                 std::cout << "PSI decoder PSI section too long" << std::endl;
                 raw_section->Reset();
                 available_length = 0;
+                break;
             }
             payload_pos += 3;
             available_length -= 3;
@@ -107,7 +109,7 @@ void SectionFactory::sectionGather(uint8_t* ts_packet)
             raw_section->recv_length += remain_length;
 
             Section* sec = createSectoin(raw_section);
-            if(!addSection(sec))
+            if(sec != NULL && !addSection(sec))
                 delete sec;
             raw_section->Reset();
             
@@ -168,6 +170,18 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
     {
         if(data[0] == 0x70)
             return new TDT(data, len);
+    }
+
+    if(pat != NULL)
+    {
+        std::list<PAT::ProgInfo*>::iterator pit;
+        for(pit = pat->prog_list.begin(); pit != pat->prog_list.end(); ++ pit)
+        {
+            if((*pit)->program_number != 0 && type == (*pit)->program_map_PID)
+            {
+                return new PMT(data, len);
+            }
+        }
     }
     
     return NULL;

@@ -31,6 +31,9 @@ class Section
     bool private_indicator;
     //##ModelId=555552030016
     uint16_t length;
+
+    //for resolved
+    TiXmlElement* xml;
 };
 
 

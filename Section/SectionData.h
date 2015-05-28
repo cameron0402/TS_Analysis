@@ -19,7 +19,7 @@ class SectionData
     void Reset();
 
     //##ModelId=555EBFD90065
-    int16_t PID;
+    uint16_t PID;
     //##ModelId=555EBFEF00CD
     uint16_t section_data_length;
     //##ModelId=555EC008001C

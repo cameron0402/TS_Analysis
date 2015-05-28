@@ -2,7 +2,8 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
-
+#include <fstream>
+#include "XML/tinyxml.h"
 
 typedef unsigned char uint8_t;
 typedef char int8_t;

@@ -63,6 +63,84 @@ bool PAT::joinTo(SectionFactory* sf)
     return false;
 }
 
+void PAT::resolved()
+{
+    xml = new TiXmlElement("Section");
+    xml->SetAttribute("transport_stream_id", transport_stream_id);
+    xml->SetAttribute("version_number", version_number);
+    xml->SetAttribute("section_number", section_number);
+
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+    sprintf(arr, "0x%x", table_id);
+    tmp = new TiXmlElement("table_id");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", syntax_indicator);
+    tmp = new TiXmlElement("section_syntax_indicator");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", length);
+    tmp = new TiXmlElement("section_length");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", transport_stream_id);
+    tmp = new TiXmlElement("transport_stream_id");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", version_number);
+    tmp = new TiXmlElement("version_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", current_next_indicator);
+    tmp = new TiXmlElement("current_next_indicator");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", section_number);
+    tmp = new TiXmlElement("section_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", last_section_number);
+    tmp = new TiXmlElement("last_section_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    tmp = new TiXmlElement("Program Info");
+    tmp->SetAttribute("program quantity", prog_list.size());
+    std::list<ProgInfo*>::iterator pit;
+    for(pit = prog_list.begin(); pit != prog_list.end(); ++pit)
+    {
+        TiXmlElement* stmp;
+        if((*pit)->program_number != 0x0)
+        {
+            stmp = new TiXmlElement("Program");
+            stmp->SetAttribute("Program_number", (*pit)->program_number);
+            stmp->SetAttribute("PMT_PID", (*pit)->program_map_PID);
+        }
+        else
+        {
+            stmp = new TiXmlElement("Network");
+            stmp->SetAttribute("Program_number", (*pit)->program_number);
+            stmp->SetAttribute("NIT_PID", (*pit)->program_map_PID);
+        }
+        tmp->LinkEndChild(stmp);       
+    }
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", crc32);
+    tmp = new TiXmlElement("CRC32");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+}
+
 bool PAT::operator==(const PAT& pt)
 {
     return crc32 == pt.crc32;

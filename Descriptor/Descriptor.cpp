@@ -1,13 +1,14 @@
 #include "Descriptor.h"
 
-Descriptor::Descriptor()
+Descriptor::Descriptor() : xml(NULL)
 {
 
 }
 
 Descriptor::Descriptor(uint8_t* data) 
     : tag(data[0]), 
-      length(data[1])
+      length(data[1]),
+      xml(NULL)
 {
 }
 

@@ -17,6 +17,8 @@ class DataStreamAlignmentDesc : public Descriptor
     //##ModelId=555833A001F2
     virtual ~DataStreamAlignmentDesc();
 
+    virtual void resolved();
+
     //##ModelId=555833B701CB
     uint8_t alignment_type;
 };

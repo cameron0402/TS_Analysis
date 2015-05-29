@@ -16,6 +16,8 @@ class StreamIdentifierDesc : public Descriptor
     //##ModelId=555AF0800135
     virtual ~StreamIdentifierDesc();
 
+    virtual void resolved();
+
     //##ModelId=555AF03800A5
     uint8_t component_tag;
 };

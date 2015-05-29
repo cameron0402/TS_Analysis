@@ -65,27 +65,13 @@ bool PAT::joinTo(SectionFactory* sf)
 
 void PAT::resolved()
 {
-    xml = new TiXmlElement("Section");
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Section::resolved();
     xml->SetAttribute("transport_stream_id", transport_stream_id);
     xml->SetAttribute("version_number", version_number);
     xml->SetAttribute("section_number", section_number);
-
-    TiXmlElement* tmp;
-    char arr[16] = {0};
-    sprintf(arr, "0x%x", table_id);
-    tmp = new TiXmlElement("table_id");
-    tmp->LinkEndChild(new TiXmlText(arr));
-    xml->LinkEndChild(tmp);
-
-    sprintf(arr, "0x%x", syntax_indicator);
-    tmp = new TiXmlElement("section_syntax_indicator");
-    tmp->LinkEndChild(new TiXmlText(arr));
-    xml->LinkEndChild(tmp);
-
-    sprintf(arr, "0x%x", length);
-    tmp = new TiXmlElement("section_length");
-    tmp->LinkEndChild(new TiXmlText(arr));
-    xml->LinkEndChild(tmp);
 
     sprintf(arr, "0x%x", transport_stream_id);
     tmp = new TiXmlElement("transport_stream_id");
@@ -112,7 +98,7 @@ void PAT::resolved()
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
 
-    tmp = new TiXmlElement("Program Info");
+    tmp = new TiXmlElement("Program_Info");
     tmp->SetAttribute("program quantity", prog_list.size());
     std::list<ProgInfo*>::iterator pit;
     for(pit = prog_list.begin(); pit != prog_list.end(); ++pit)

@@ -16,6 +16,8 @@ class MaximumBitrateDesc : public Descriptor
     //##ModelId=55594F3B0177
     virtual ~MaximumBitrateDesc();
 
+    virtual void resolved();
+
     //##ModelId=55594EE40070
     uint32_t maximum_bitrate;
 };

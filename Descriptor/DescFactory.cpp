@@ -142,6 +142,10 @@ Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
         case 0x7C: return new AACDesc(data);
         case 0x7F: return new ExtensionDesc(data);
         
+        //descriptors used in DSM-CC, have not defined now
+        case 0x13: //carousel_identifier_descriptor
+        case 0x14: //association_tag_descriptor
+
         //descriptors that can't find definitions
         case 0x6F: //Application_signalling_descriptor
         case 0x71: //Service_identifier_descriptor

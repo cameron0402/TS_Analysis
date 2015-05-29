@@ -17,12 +17,16 @@ class AudioStreamDesc : public Descriptor
     //##ModelId=55582C65023A
     virtual ~AudioStreamDesc();
 
+    virtual void resolved();
+
     //##ModelId=55582B7800F3
     bool free_format_flag;
     //##ModelId=55582BB0007A
     uint8_t ID;
     //##ModelId=55582BC70242
     uint8_t layer;
+
+    bool variable_rate_audio_indicator;
 };
 
 

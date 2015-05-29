@@ -17,3 +17,17 @@ StreamIdentifierDesc::~StreamIdentifierDesc()
 {
 }
 
+void StreamIdentifierDesc::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Descriptor::resolved();
+    xml->SetValue("stream_identifier_descriptor");
+
+    sprintf(arr, "0x%x", component_tag);
+    tmp = new TiXmlElement("component_tag");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+}
+

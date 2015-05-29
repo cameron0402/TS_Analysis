@@ -107,3 +107,92 @@ bool PMT::operator==(const PMT& pt)
     return crc32 == pt.crc32;
 }
 
+void PMT::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Section::resolved();
+    xml->SetAttribute("program_number", program_number);
+    xml->SetAttribute("version_number", version_number);
+    xml->SetAttribute("section_number", section_number);
+
+    sprintf(arr, "0x%x", program_number);
+    tmp = new TiXmlElement("program_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", version_number);
+    tmp = new TiXmlElement("version_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", current_next_indicator);
+    tmp = new TiXmlElement("current_next_indicator");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", section_number);
+    tmp = new TiXmlElement("section_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", last_section_number);
+    tmp = new TiXmlElement("last_section_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", PCR_PID);
+    tmp = new TiXmlElement("PCR_PID");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", program_info_length);
+    tmp = new TiXmlElement("program_info_length");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    if(!desc_list.empty())
+    {
+        tmp = new TiXmlElement("Descriptors");
+        std::list<Descriptor*>::iterator dit;
+        for(dit = desc_list.begin(); dit != desc_list.end(); ++dit)
+        {
+            (*dit)->resolved();
+            tmp->LinkEndChild((*dit)->xml);
+        }
+        xml->LinkEndChild(tmp);
+    }
+
+    if(!stream_list.empty())
+    {
+        std::list<StreamInfo*>::iterator sit;
+        for(sit = stream_list.begin(); sit != stream_list.end(); ++sit)
+        {
+            tmp = new TiXmlElement("Stream");
+            tmp->SetAttribute("stream_type", (*sit)->type);
+            tmp->SetAttribute("elementary_PID", (*sit)->elem_PID);
+            tmp->SetAttribute("ES_info_length", (*sit)->info_length);
+            if(!(*sit)->desc_list.empty())
+            {
+                TiXmlElement* tms = new TiXmlElement("Descriptors");
+                std::list<Descriptor*>::iterator sdit;
+                for(sdit = (*sit)->desc_list.begin(); sdit != (*sit)->desc_list.end(); ++sdit)
+                {
+                    (*sdit)->resolved();
+                    tms->LinkEndChild((*sdit)->xml);
+                }
+                tmp->LinkEndChild(tms);
+            }  
+            xml->LinkEndChild(tmp);
+        }
+    }
+    
+    sprintf(arr, "0x%x", crc32);
+    tmp = new TiXmlElement("CRC32");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+}
+
+
+

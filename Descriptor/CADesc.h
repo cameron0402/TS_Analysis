@@ -16,6 +16,7 @@ class CADesc : public Descriptor
 
     //##ModelId=55583AC803BC
     virtual ~CADesc();
+    virtual void resolved();
 
     //##ModelId=55583AF8023D
     uint16_t CA_system_ID;

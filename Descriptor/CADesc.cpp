@@ -21,3 +21,22 @@ CADesc::~CADesc()
     delete []private_data;
 }
 
+void CADesc::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Descriptor::resolved();
+    xml->SetValue("CA_descriptor");
+
+    sprintf(arr, "0x%x", CA_system_ID);
+    tmp = new TiXmlElement("CA_system_ID");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", CA_PID);
+    tmp = new TiXmlElement("CA_PID");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+}
+

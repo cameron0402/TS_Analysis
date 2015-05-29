@@ -17,3 +17,17 @@ MaximumBitrateDesc::~MaximumBitrateDesc()
 {
 }
 
+void MaximumBitrateDesc::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Descriptor::resolved();
+    xml->SetValue("maximum_bitrate_descriptor");
+
+    sprintf(arr, "0x%x", maximum_bitrate);
+    tmp = new TiXmlElement("maxmum_bitrate");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+}
+

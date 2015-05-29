@@ -20,3 +20,17 @@ DataBroadcastIDDesc::~DataBroadcastIDDesc()
     delete []id_selector;
 }
 
+void DataBroadcastIDDesc::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Descriptor::resolved();
+    xml->SetValue("data_broadcast_id_descriptor");
+
+    sprintf(arr, "0x%x", data_broadcast_id);
+    tmp = new TiXmlElement("data_broadcast_id");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+}
+

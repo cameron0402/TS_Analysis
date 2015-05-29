@@ -29,5 +29,23 @@ bool Section::joinTo(SectionFactory* sf)
 //##ModelId=555561E1025F
 void Section::resolved()
 {
+    xml = new TiXmlElement("Section");
+    
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+    sprintf(arr, "0x%x", table_id);
+    tmp = new TiXmlElement("table_id");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", syntax_indicator);
+    tmp = new TiXmlElement("section_syntax_indicator");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", length);
+    tmp = new TiXmlElement("section_length");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
 }
 

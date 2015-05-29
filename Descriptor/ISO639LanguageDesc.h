@@ -8,6 +8,16 @@ class ISO639LanguageDesc : public Descriptor
 {
   public:
     //##ModelId=555938E30314
+    class LanguageInfo
+    {
+    public:
+        LanguageInfo();
+        LanguageInfo(uint8_t* data);
+        ~LanguageInfo();
+
+        uint8_t lang[3];
+        uint8_t audio_type;
+    };
     ISO639LanguageDesc();
 
     //##ModelId=555938F30225
@@ -16,10 +26,9 @@ class ISO639LanguageDesc : public Descriptor
     //##ModelId=555939280014
     virtual ~ISO639LanguageDesc();
 
-    //##ModelId=55593C7F0153
-    std::list<std::vector<char>> lang_list;
-    //##ModelId=55593D380024
-    uint8_t audio_type;
+    virtual void resolved();
+
+    std::list<LanguageInfo*> lang_list;
 };
 
 

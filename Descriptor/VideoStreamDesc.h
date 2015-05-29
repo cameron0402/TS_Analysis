@@ -17,12 +17,14 @@ class VideoStreamDesc : public Descriptor
     //##ModelId=55582A8C0059
     virtual ~VideoStreamDesc();
 
+    virtual void resolved();
+
     //##ModelId=5558264C02F7
     bool multiple_frame_rate_flag;
     //##ModelId=5558267C0199
     uint8_t frame_rate_code;
     //##ModelId=555826A20349
-    bool MPEG_2_flag;
+    bool MPEG_1_only_flag;
     //##ModelId=555826D701D1
     bool constrained_parameter_flag;
     //##ModelId=5558270501F9

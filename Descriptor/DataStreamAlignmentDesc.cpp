@@ -17,3 +17,17 @@ DataStreamAlignmentDesc::~DataStreamAlignmentDesc()
 {
 }
 
+void DataStreamAlignmentDesc::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Descriptor::resolved();
+    xml->SetValue("data_stream_alignment_descriptor");
+
+    sprintf(arr, "0x%x", alignment_type);
+    tmp = new TiXmlElement("alignment_type");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+}
+

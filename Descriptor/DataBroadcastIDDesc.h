@@ -15,6 +15,7 @@ class DataBroadcastIDDesc : public Descriptor
 
     //##ModelId=555C4166014A
     virtual ~DataBroadcastIDDesc();
+    virtual void resolved();
 
     //##ModelId=555C418B0191
     uint16_t data_broadcast_id;

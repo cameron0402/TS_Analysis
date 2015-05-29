@@ -124,7 +124,6 @@ void PAT::resolved()
     tmp = new TiXmlElement("CRC32");
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
-
 }
 
 bool PAT::operator==(const PAT& pt)

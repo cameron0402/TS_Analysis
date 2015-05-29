@@ -18,12 +18,20 @@ bool SectionFactory::addSection(Section* section)
     return section->joinTo(this);
 }
 
-void SectionFactory::sectionGather(uint8_t* ts_packet)
+void SectionFactory::sectionGather(int pid, uint8_t* ts_packet)
 {
     uint8_t* payload_pos = NULL;
+    uint8_t* p_new_pos = NULL;
     bool first_flag = false;
     uint8_t expected_counter;
     uint8_t available_length;
+
+    if(raw_sarr[pid] == NULL)
+    {
+        raw_sarr[pid] = new SectionData();
+    }
+
+    SectionData* raw_section = raw_sarr[pid];
 
     //ts packet start
     if(ts_packet[0] != 0x47)
@@ -46,20 +54,20 @@ void SectionFactory::sectionGather(uint8_t* ts_packet)
         if(expected_counter == ((raw_section->continuity_counter + 1) & 0xf) && 
            !raw_section->discontinuity_flag)
         {
-            /*std::cout << "PSI decoder TS duplicate (received " << raw_section->continuity_counter
-                      << "expected " << expected_counter 
-                      << ") for PID " << raw_section->PID << std::endl;*/
+            std::cout << "PSI decoder TS duplicate (received " << (int)raw_section->continuity_counter
+                      << " expected " << (int)expected_counter 
+                      << ") for PID " << raw_section->PID << std::endl;
             return ;
         }
 
         if(expected_counter != raw_section->continuity_counter)
         {
-            /*std::cout << "PSI decoder TS discontinuity (received " << raw_section->continuity_counter 
-                      << "expected " << expected_counter 
-                      << ") for PID " << raw_section->PID << std::endl;*/
+            std::cout << "PSI decoder TS discontinuity (received " << (int)raw_section->continuity_counter 
+                      << " expected " << (int)expected_counter 
+                      << ") for PID " << raw_section->PID << std::endl;
             //section_data->discontinuity_flag = true;
             raw_section->Reset();
-            return ;
+            //return ;
         }
     }
 
@@ -76,7 +84,21 @@ void SectionFactory::sectionGather(uint8_t* ts_packet)
     /* Unit start -> skip the pointer_field and a new section begins */
     if(ts_packet[1] & 0x40)
     {
-        payload_pos = payload_pos + *payload_pos + 1;
+        p_new_pos = payload_pos + *payload_pos + 1;
+        payload_pos += 1;
+    }
+
+    if(raw_section->recv_length == 0)
+    {
+        if(p_new_pos != NULL)
+        {
+            payload_pos = p_new_pos;
+            p_new_pos = NULL;
+        }
+        else
+        {
+            return ;
+        }
     }
 
     /* Remaining bytes in the payload */
@@ -208,7 +230,7 @@ SectionFactory::SectionFactory()
       eit_list(0),
       tdt(NULL),
       tot(NULL),
-      raw_section(new SectionData())
+      raw_sarr()
 {
 }
 
@@ -265,6 +287,13 @@ SectionFactory::~SectionFactory()
     if(tot != NULL)
         delete tot;
 
-    delete raw_section;
+    for(int i = 0; i < MAX_PID_NUM; ++i)
+    {
+        if(raw_sarr[i] != NULL)
+        {
+            delete raw_sarr[i];
+            raw_sarr[i] = NULL;
+        }
+    }
 }
 

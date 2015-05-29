@@ -18,6 +18,7 @@ class SectionData;
 class SectionFactory
 {
   public:
+    enum {MAX_PID_NUM = 8192};
     //##ModelId=5555501D00F6
     bool addSection(Section* section);
 
@@ -27,7 +28,7 @@ class SectionFactory
     //##ModelId=5555977903C2
     static SectionFactory* GetInstance();
 
-    void sectionGather(uint8_t* ts_packet);
+    void sectionGather(int pid, uint8_t* ts_packet);
 
     virtual ~SectionFactory();
 
@@ -53,7 +54,7 @@ class SectionFactory
     TOT* tot;
   
     //##ModelId=555EC50E007F
-    SectionData* raw_section;
+    SectionData* raw_sarr[MAX_PID_NUM];
   private:
     //##ModelId=555597630041
     SectionFactory();

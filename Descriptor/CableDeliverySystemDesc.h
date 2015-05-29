@@ -15,6 +15,7 @@ class CableDeliverySystemDesc : public Descriptor
 
     //##ModelId=55599A59017E
     virtual ~CableDeliverySystemDesc();
+    virtual void resolved();
 
     //##ModelId=555999C202E1
     uint32_t frequency;

@@ -15,6 +15,7 @@ class CAT : public Section
     //##ModelId=555828DD0014
     virtual ~CAT();
     virtual bool joinTo(SectionFactory* sf);
+    virtual void resolved();
     bool operator ==(const CAT& ct);
 
     //##ModelId=5562980E020A

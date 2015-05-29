@@ -22,8 +22,8 @@ void SectionData::Reset()
 {
     //PID = 0xFFFF;
     section_data_length = 0;
+    recv_length = 0;
     continuity_counter = INVALID_CC;
     discontinuity_flag = false;
-    recv_length = 0;
 }
 

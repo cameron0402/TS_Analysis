@@ -40,6 +40,7 @@ class NIT : public Section
     //##ModelId=555828A60271
     virtual ~NIT();
     virtual bool joinTo(SectionFactory* sf);
+    virtual void resolved();
     bool operator ==(const NIT& nt);
     //##ModelId=5562978900BC
     uint16_t network_id;

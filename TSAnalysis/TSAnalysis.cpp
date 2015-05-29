@@ -80,9 +80,9 @@ int TSAnalysis::get_packet_size(const uint8_t* buf, int size, int* index = NULL)
 
 bool TSAnalysis::is_section_pkt(uint16_t type)
 {
-    if(type == 0x00 /*||
+    if(type == 0x00 ||
        type == 0x01 ||
-       type == 0x10 ||
+       type == 0x10 /*||
        type == 0x11 ||
        type == 0x12 ||
        type == 0x14*/)
@@ -125,8 +125,8 @@ void TSAnalysis::ts_analysis()
         inf.read((char*)test_buf, pkt_sz);
         uint16_t pid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
         if(is_section_pkt(pid))
-            sf->sectionGather(test_buf);
-
-        pid--;
+        {
+            sf->sectionGather(pid, test_buf);
+        }
     }
 }

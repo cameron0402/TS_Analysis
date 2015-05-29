@@ -11,6 +11,9 @@ class ServiceListDesc : public Descriptor
     class ServiceInfo
     {
       public:
+        ServiceInfo();
+        ServiceInfo(uint8_t* data);
+        ~ServiceInfo();
         //##ModelId=5559825F027A
         uint16_t service_id;
         //##ModelId=5559827003C4
@@ -26,8 +29,10 @@ class ServiceListDesc : public Descriptor
     //##ModelId=5559831700ED
     virtual ~ServiceListDesc();
 
+    virtual void resolved();
+
     //##ModelId=5559828B0375
-    std::list<ServiceInfo> service_list;
+    std::list<ServiceInfo*> service_list;
 };
 
 

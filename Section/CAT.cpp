@@ -55,3 +55,50 @@ bool CAT::operator==(const CAT& ct)
     return crc32 == ct.crc32;
 }
 
+void CAT::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Section::resolved();
+    xml->SetAttribute("version_number", version_number);
+    xml->SetAttribute("section_number", section_number);
+
+    sprintf(arr, "0x%x", version_number);
+    tmp = new TiXmlElement("version_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", current_next_indicator);
+    tmp = new TiXmlElement("current_next_indicator");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", section_number);
+    tmp = new TiXmlElement("section_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", last_section_number);
+    tmp = new TiXmlElement("last_section_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    if(!desc_list.empty())
+    {
+        tmp = new TiXmlElement("Descriptors");
+        std::list<Descriptor*>::iterator dit;
+        for(dit = desc_list.begin(); dit != desc_list.end(); ++dit)
+        {
+            (*dit)->resolved();
+            tmp->LinkEndChild((*dit)->xml);
+        }
+        xml->LinkEndChild(tmp);
+    }
+
+    sprintf(arr, "0x%x", crc32);
+    tmp = new TiXmlElement("CRC32");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+}
+

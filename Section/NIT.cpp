@@ -34,8 +34,8 @@ NIT::NIT(uint8_t* data, uint16_t len)
     sub_data = data + 12 + network_descriptors_length;
     while(index < transport_stream_loop_length)
     {
-        TransStreamInfo* tsi = new TransStreamInfo(data + index);
-        index += 4 + tsi->transport_descriptors_length;
+        TransStreamInfo* tsi = new TransStreamInfo(sub_data + index);
+        index += 6 + tsi->transport_descriptors_length;
         streaminfo_list.push_back(tsi);
     }
 }
@@ -106,5 +106,106 @@ bool NIT::joinTo(SectionFactory* sf)
 bool NIT::operator ==(const NIT& nt)
 {
     return crc32 == nt.crc32;
+}
+
+void NIT::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Section::resolved();
+    xml->SetAttribute("table_id", table_id);
+    xml->SetAttribute("network_id", network_id);
+    xml->SetAttribute("version_number", version_number);
+    xml->SetAttribute("section_number", section_number);
+
+    sprintf(arr, "0x%x", network_id);
+    tmp = new TiXmlElement("network_id");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", version_number);
+    tmp = new TiXmlElement("version_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", current_next_indicator);
+    tmp = new TiXmlElement("current_next_indicator");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", section_number);
+    tmp = new TiXmlElement("section_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", last_section_number);
+    tmp = new TiXmlElement("last_section_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", network_descriptors_length);
+    tmp = new TiXmlElement("network_descriptors_length");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    if(!desc_list.empty())
+    {
+        tmp = new TiXmlElement("Descriptors");
+        std::list<Descriptor*>::iterator dit;
+        for(dit = desc_list.begin(); dit != desc_list.end(); ++dit)
+        {
+            (*dit)->resolved();
+            tmp->LinkEndChild((*dit)->xml);
+        }
+        xml->LinkEndChild(tmp);
+    }
+
+    sprintf(arr, "0x%x", transport_stream_loop_length);
+    tmp = new TiXmlElement("transport_stream_loop_length");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    if(!streaminfo_list.empty())
+    {
+        std::list<TransStreamInfo*>::iterator tit;
+        for(tit = streaminfo_list.begin(); tit != streaminfo_list.end(); ++tit)
+        {
+            tmp = new TiXmlElement("TransportStream");
+
+            sprintf(arr, "0x%x", (*tit)->transport_stream_id);
+            TiXmlElement* tms = new TiXmlElement("transport_stream_id");
+            tms->LinkEndChild(new TiXmlText(arr));
+            tmp->LinkEndChild(tms);
+
+            sprintf(arr, "0x%x", (*tit)->original_network_id);
+            tms = new TiXmlElement("original_network_id");
+            tms->LinkEndChild(new TiXmlText(arr));
+            tmp->LinkEndChild(tms);
+
+            sprintf(arr, "0x%x", (*tit)->transport_descriptors_length);
+            tms = new TiXmlElement("transport_descriptors_length");
+            tms->LinkEndChild(new TiXmlText(arr));
+            tmp->LinkEndChild(tms);
+            
+            if(!(*tit)->desc_list.empty())
+            {
+                tms = new TiXmlElement("Descriptors");
+                std::list<Descriptor*>::iterator sdit;
+                for(sdit = (*tit)->desc_list.begin(); sdit != (*tit)->desc_list.end(); ++sdit)
+                {
+                    (*sdit)->resolved();
+                    tms->LinkEndChild((*sdit)->xml);
+                }
+                tmp->LinkEndChild(tms);
+            }  
+            xml->LinkEndChild(tmp);
+        }
+    }
+
+    sprintf(arr, "0x%x", crc32);
+    tmp = new TiXmlElement("CRC32");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
 }
 

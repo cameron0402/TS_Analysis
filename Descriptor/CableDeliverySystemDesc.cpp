@@ -21,3 +21,37 @@ CableDeliverySystemDesc::~CableDeliverySystemDesc()
 {
 }
 
+void CableDeliverySystemDesc::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Descriptor::resolved();
+    xml->SetValue("cable_delivery_system_descriptor");
+
+    sprintf(arr, "0x%x", frequency);
+    tmp = new TiXmlElement("frequency");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", FEC_outer);
+    tmp = new TiXmlElement("FEC_outer");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", modulation);
+    tmp = new TiXmlElement("modulation");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", symbol_rate);
+    tmp = new TiXmlElement("symbol_rate");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", FEC_inner);
+    tmp = new TiXmlElement("FEC_inner");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+}
+

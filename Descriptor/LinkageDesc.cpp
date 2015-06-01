@@ -36,3 +36,59 @@ LinkageDesc::~LinkageDesc()
 {
 }
 
+void LinkageDesc::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Descriptor::resolved();
+    xml->SetValue("linkage_descriptor");
+
+    sprintf(arr, "0x%x", transport_stream_id);
+    tmp = new TiXmlElement("transport_stream_id");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", original_network_id);
+    tmp = new TiXmlElement("original_network_id");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", service_id);
+    tmp = new TiXmlElement("service_id");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", linkage_type);
+    tmp = new TiXmlElement("linkage_type");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    if(linkage_type == 0x08)
+    {
+        sprintf(arr, "0x%x", hand_over_type);
+        tmp = new TiXmlElement("hand_over_type");
+        tmp->LinkEndChild(new TiXmlText(arr));
+        xml->LinkEndChild(tmp);
+
+        sprintf(arr, "0x%x", origin_type);
+        tmp = new TiXmlElement("origin_type");
+        tmp->LinkEndChild(new TiXmlText(arr));
+        xml->LinkEndChild(tmp);
+
+        if(hand_over_type >= 0x1 && hand_over_type <= 0x3)
+        {
+            sprintf(arr, "0x%x", network_id);
+            tmp = new TiXmlElement("network_id");
+            tmp->LinkEndChild(new TiXmlText(arr));
+            xml->LinkEndChild(tmp);
+        }
+        if(origin_type == 0x0)
+        {
+            sprintf(arr, "0x%x", initial_service_id);
+            tmp = new TiXmlElement("initial_service_id");
+            tmp->LinkEndChild(new TiXmlText(arr));
+            xml->LinkEndChild(tmp);
+        }    
+    }
+}

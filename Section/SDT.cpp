@@ -19,7 +19,7 @@ SDT::SDT(uint8_t* data, uint16_t len)
       original_network_id((data[8] << 8) | data[9]),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
-    int index = 10;
+    int index = 11;
     while(index < len - 4)
     {
         ServiceInfo* si = new ServiceInfo(data + index);
@@ -58,7 +58,7 @@ SDT::ServiceInfo::ServiceInfo(uint8_t* data)
     uint8_t* pd = data + 5;
     while(idx < descriptors_loop_length)
     {
-        Descriptor* des = des_fac.createDesc(data[idx], data + idx);
+        Descriptor* des = des_fac.createDesc(pd[idx], pd + idx);
         desc_list.push_back(des);
         idx += des->length + 2;
     }
@@ -90,5 +90,109 @@ bool SDT::joinTo(SectionFactory* sf)
     }
     sf->sdt_list.push_back(this);
     return true;
+}
+
+void SDT::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[16] = {0};
+
+    Section::resolved();
+    xml->SetAttribute("table_id", table_id);
+    xml->SetAttribute("original_network_id", original_network_id);
+    xml->SetAttribute("transport_stream_id", transport_stream_id);
+    xml->SetAttribute("version_number", version_number);
+    xml->SetAttribute("section_number", section_number);
+
+    sprintf(arr, "0x%x", transport_stream_id);
+    tmp = new TiXmlElement("transport_stream_id");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", version_number);
+    tmp = new TiXmlElement("version_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", current_next_indicator);
+    tmp = new TiXmlElement("current_next_indicator");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", section_number);
+    tmp = new TiXmlElement("section_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", last_section_number);
+    tmp = new TiXmlElement("last_section_number");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", original_network_id);
+    tmp = new TiXmlElement("original_network_id");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    
+
+    if(!service_list.empty())
+    {
+        std::list<ServiceInfo*>::iterator sit;
+        for(sit = service_list.begin(); sit != service_list.end(); ++sit)
+        {
+            tmp = new TiXmlElement("Service");
+
+            sprintf(arr, "0x%x", (*sit)->service_id);
+            TiXmlElement* tms = new TiXmlElement("service_id");
+            tms->LinkEndChild(new TiXmlText(arr));
+            tmp->LinkEndChild(tms);
+
+            sprintf(arr, "0x%x", (*sit)->EIT_schedule_flag);
+            tms = new TiXmlElement("EIT_schedule_flag");
+            tms->LinkEndChild(new TiXmlText(arr));
+            tmp->LinkEndChild(tms);
+
+            sprintf(arr, "0x%x", (*sit)->EIT_present_following_flag);
+            tms = new TiXmlElement("EIT_present_following_flag");
+            tms->LinkEndChild(new TiXmlText(arr));
+            tmp->LinkEndChild(tms);
+
+            sprintf(arr, "0x%x", (*sit)->running_status);
+            tms = new TiXmlElement("running_status");
+            tms->LinkEndChild(new TiXmlText(arr));
+            tmp->LinkEndChild(tms);
+
+            sprintf(arr, "0x%x", (*sit)->free_CA_mode);
+            tms = new TiXmlElement("free_CA_mode");
+            tms->LinkEndChild(new TiXmlText(arr));
+            tmp->LinkEndChild(tms);
+
+            sprintf(arr, "0x%x", (*sit)->descriptors_loop_length);
+            tms = new TiXmlElement("descriptors_loop_length");
+            tms->LinkEndChild(new TiXmlText(arr));
+            tmp->LinkEndChild(tms);
+
+            if(!(*sit)->desc_list.empty())
+            {
+                tms = new TiXmlElement("Descriptors");
+                std::list<Descriptor*>::iterator sdit;
+                for(sdit = (*sit)->desc_list.begin(); sdit != (*sit)->desc_list.end(); ++sdit)
+                {
+                    (*sdit)->resolved();
+                    tms->LinkEndChild((*sdit)->xml);
+                }
+                tmp->LinkEndChild(tms);
+            }  
+
+            xml->LinkEndChild(tmp);
+        }
+    }
+   
+
+    sprintf(arr, "0x%x", crc32);
+    tmp = new TiXmlElement("CRC32");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
 }
 

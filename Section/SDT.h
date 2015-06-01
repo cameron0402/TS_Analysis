@@ -49,6 +49,8 @@ class SDT : public Section
     virtual bool joinTo(SectionFactory* sf);
     bool operator ==(const SDT& st);
 
+    virtual void resolved();
+
     //##ModelId=5563CBB70111
     uint16_t transport_stream_id;
     //##ModelId=5563CBCC01CD

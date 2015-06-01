@@ -82,9 +82,9 @@ bool TSAnalysis::is_section_pkt(uint16_t type)
 {
     if(type == 0x00 ||
        type == 0x01 ||
-       type == 0x10 /*||
+       type == 0x10 ||
        type == 0x11 ||
-       type == 0x12 ||
+       type == 0x12 /*||
        type == 0x14*/)
     {
         return true;

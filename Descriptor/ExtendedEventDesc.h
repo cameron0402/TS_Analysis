@@ -14,13 +14,11 @@ class ExtendedEventDesc : public Descriptor
         //##ModelId=555AB2FD0182
         ItemInfo(const ItemInfo& itf);
 
-        //##ModelId=555AB13300AB
+        ItemInfo();
+        ItemInfo(uint8_t* data);
+
         //##ModelId=555AB33A00B3
         virtual ~ItemInfo();
-
-        
-        //##ModelId=555AB34B0012
-        ItemInfo();
 
         uint8_t item_description_length;
         //##ModelId=555AB14E0063
@@ -40,6 +38,8 @@ class ExtendedEventDesc : public Descriptor
     //##ModelId=555AB27001B9
     virtual ~ExtendedEventDesc();
 
+    virtual void resolved();
+
     //##ModelId=555AB0AA0362
     uint8_t descriptor_number;
     //##ModelId=555AB0C602FA
@@ -49,7 +49,7 @@ class ExtendedEventDesc : public Descriptor
     //##ModelId=555AB1090332
     uint8_t length_of_items;
     //##ModelId=555AB1DF0282
-    std::list<ItemInfo> item_list;
+    std::list<ItemInfo*> item_list;
     //##ModelId=555AB20C017A
     uint8_t text_length;
     //##ModelId=555AB21D0164

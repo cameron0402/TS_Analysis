@@ -50,6 +50,8 @@ class EIT : public Section
     virtual bool joinTo(SectionFactory* sf);
     bool operator ==(const EIT& et);
 
+    virtual void resolved();
+
 
     //##ModelId=5563DB5E002F
     uint16_t service_id;

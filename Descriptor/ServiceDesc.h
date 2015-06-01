@@ -16,6 +16,8 @@ class ServiceDesc : public Descriptor
     //##ModelId=555A8EE702F1
     virtual ~ServiceDesc();
 
+    virtual void resolved();
+
     //##ModelId=555A8EFC0363
     uint8_t service_type;
     //##ModelId=555A8F190231

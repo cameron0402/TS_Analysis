@@ -17,7 +17,11 @@ Section::Section(uint8_t* data, uint16_t len)
 
 Section::~Section()
 {
-
+    if(xml != NULL)
+    {
+        delete xml;
+        xml = NULL;
+    }
 }
 
 //##ModelId=5555540B00A0
@@ -29,6 +33,12 @@ bool Section::joinTo(SectionFactory* sf)
 //##ModelId=555561E1025F
 void Section::resolved()
 {
+    if(xml != NULL)
+    {
+        delete xml;
+        xml = NULL;
+    }
+
     xml = new TiXmlElement("Section");
     
     TiXmlElement* tmp;
@@ -48,4 +58,5 @@ void Section::resolved()
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
 }
+
 

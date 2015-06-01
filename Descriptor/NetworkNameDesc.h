@@ -16,6 +16,8 @@ class NetworkNameDesc : public Descriptor
     //##ModelId=55597F7A01E2
     virtual ~NetworkNameDesc();
 
+    virtual void resolved();
+
     //##ModelId=55597F8F035B
     uint8_t* network_name;
 };

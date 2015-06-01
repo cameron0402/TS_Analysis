@@ -1,3 +1,6 @@
+#ifndef _DEF_H_
+#define _DEF_H_
+
 #include <list>
 #include <vector>
 #include <iostream>
@@ -16,3 +19,5 @@ typedef int int32_t;
 
 typedef unsigned long long uint64_t;
 typedef long long int64_t;
+
+#endif

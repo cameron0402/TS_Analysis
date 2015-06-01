@@ -16,6 +16,8 @@ class ShortEventDesc : public Descriptor
     //##ModelId=555AAC0C03A9
     virtual ~ShortEventDesc();
 
+    virtual void resolved();
+
     //##ModelId=555AAB460181
     char ISO6392_language[3];
     //##ModelId=555AAB9701A1

@@ -11,6 +11,9 @@ class ContentDesc : public Descriptor
     class ContentInfo
     {
       public:
+        ContentInfo();
+        ContentInfo(uint8_t* data);
+        virtual ~ContentInfo();
         //##ModelId=555AF27201B5
         uint8_t content_nibble_level_1;
         //##ModelId=555AF294001C
@@ -30,8 +33,10 @@ class ContentDesc : public Descriptor
     //##ModelId=555AF34201EF
     virtual ~ContentDesc();
 
+    virtual void resolved();
+
     //##ModelId=555AF2F201E5
-    std::list<ContentInfo> content_list;
+    std::list<ContentInfo*> content_list;
 };
 
 

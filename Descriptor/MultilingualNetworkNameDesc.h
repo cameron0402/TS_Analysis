@@ -14,13 +14,13 @@ class MultilingualNetworkNameDesc : public Descriptor
         //##ModelId=555C1CB402A2
         MNameInfo();
 
-        //##ModelId=555C03A6027E
+        MNameInfo(uint8_t* data);
+
         //##ModelId=555C1CBC0072
         MNameInfo(const MNameInfo& mnif);
 
-        
         //##ModelId=555C1CC201B6
-        ~MNameInfo();
+        virtual ~MNameInfo();
 
         uint8_t ISO6392_language[3];
         //##ModelId=555C03C2012F
@@ -37,9 +37,10 @@ class MultilingualNetworkNameDesc : public Descriptor
 
     //##ModelId=555C036901A6
     virtual ~MultilingualNetworkNameDesc();
+    virtual void resolved();
 
     //##ModelId=555C03FC0191
-    std::list<MNameInfo> netname_list;
+    std::list<MNameInfo*> netname_list;
 };
 
 

@@ -16,6 +16,7 @@ class LinkageDesc : public Descriptor
 
     //##ModelId=555AA16F024C
     virtual ~LinkageDesc();
+    virtual void resolved();
 
     //##ModelId=555AA00A031C
     uint16_t transport_stream_id;

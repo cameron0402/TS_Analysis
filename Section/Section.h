@@ -34,6 +34,7 @@ class Section
 
     //for resolved
     TiXmlElement* xml;
+
 };
 
 

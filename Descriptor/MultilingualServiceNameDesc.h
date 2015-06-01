@@ -14,6 +14,8 @@ class MultilingualServiceNameDesc : public Descriptor
         //##ModelId=555C229901ED
         ServiceInfo();
 
+        ServiceInfo(uint8_t* data);
+
         //##ModelId=555C22A00165
         ServiceInfo(const ServiceInfo& sif);
 
@@ -41,8 +43,10 @@ class MultilingualServiceNameDesc : public Descriptor
     //##ModelId=555C230C0313
     virtual ~MultilingualServiceNameDesc();
 
+    virtual void resolved();
+
     //##ModelId=555C22CB0383
-    std::list<ServiceInfo> service_list;
+    std::list<ServiceInfo*> service_list;
 };
 
 

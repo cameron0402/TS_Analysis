@@ -31,7 +31,7 @@ ShortEventDesc::~ShortEventDesc()
 void ShortEventDesc::resolved()
 {
     TiXmlElement* tmp;
-    char arr[16] = {0};
+    char arr[256] = {0};
 
     Descriptor::resolved();
     xml->SetValue("short_event_descriptor");
@@ -47,17 +47,25 @@ void ShortEventDesc::resolved()
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
 
-    tmp = new TiXmlElement("event_name");
-    tmp->LinkEndChild(new TiXmlText((const char*)event_name));
-    xml->LinkEndChild(tmp);
-
+    if(event_name_length > 0)
+    {
+        coding_string_to_gb(event_name, (uint8_t*)arr, event_name_length);
+        tmp = new TiXmlElement("event_name");
+        tmp->LinkEndChild(new TiXmlText(arr));
+        xml->LinkEndChild(tmp);
+    }
+    
     sprintf(arr, "0x%x", text_length);
     tmp = new TiXmlElement("text_length");
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
 
-    tmp = new TiXmlElement("text");
-    tmp->LinkEndChild(new TiXmlText((const char*)text));
-    xml->LinkEndChild(tmp);
+    if(text_length > 0)
+    {
+        coding_string_to_gb(text, (uint8_t*)arr, text_length);
+        tmp = new TiXmlElement("text");
+        tmp->LinkEndChild(new TiXmlText(arr));
+        xml->LinkEndChild(tmp);
+    }  
 }
 

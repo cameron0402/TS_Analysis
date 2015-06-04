@@ -44,6 +44,7 @@ class PMT : public Section
 
     virtual bool joinTo(SectionFactory* sf);
     virtual void resolved();
+    virtual void getDetail(uint8_t* data, uint16_t len);
     bool operator ==(const PMT& pt);
 
     //##ModelId=5562969D029A

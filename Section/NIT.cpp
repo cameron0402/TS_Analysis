@@ -17,27 +17,11 @@ NIT::NIT(uint8_t* data, uint16_t len)
       section_number(data[6]),
       last_section_number(data[7]),
       network_descriptors_length(((data[8] & 0x0F) << 8) | data[9]),
+      desc_list(),
       transport_stream_loop_length(((data[10 + network_descriptors_length] & 0x0F) << 8) | data[11 + network_descriptors_length]),
+      streaminfo_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
-    int index = 0;
-    uint8_t* sub_data = data + 10;
-    DescFactory des_fac;
-    while(index < network_descriptors_length)
-    {
-        Descriptor* des = des_fac.createDesc(sub_data[index], sub_data + index);
-        index += des->length + 2;
-        desc_list.push_back(des);
-    }
-
-    index = 0;
-    sub_data = data + 12 + network_descriptors_length;
-    while(index < transport_stream_loop_length)
-    {
-        TransStreamInfo* tsi = new TransStreamInfo(sub_data + index);
-        index += 6 + tsi->transport_descriptors_length;
-        streaminfo_list.push_back(tsi);
-    }
 }
 
 //##ModelId=555828A60271
@@ -103,9 +87,36 @@ bool NIT::joinTo(SectionFactory* sf)
     return true;
 }
 
+void NIT::getDetail(uint8_t* data, uint16_t len)
+{
+    int index = 0;
+    uint8_t* sub_data = data + 10;
+    DescFactory des_fac;
+    while(index < network_descriptors_length)
+    {
+        Descriptor* des = des_fac.createDesc(sub_data[index], sub_data + index);
+        index += des->length + 2;
+        desc_list.push_back(des);
+    }
+
+    index = 0;
+    sub_data = data + 12 + network_descriptors_length;
+    while(index < transport_stream_loop_length)
+    {
+        TransStreamInfo* tsi = new TransStreamInfo(sub_data + index);
+        index += 6 + tsi->transport_descriptors_length;
+        streaminfo_list.push_back(tsi);
+    }
+}
+
 bool NIT::operator ==(const NIT& nt)
 {
-    return crc32 == nt.crc32;
+    return table_id == nt.table_id &&
+           network_id == nt.network_id &&
+           version_number == nt.version_number &&
+           section_number == nt.section_number;
+           
+    //return crc32 == nt.crc32;
 }
 
 void NIT::resolved()

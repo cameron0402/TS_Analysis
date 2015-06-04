@@ -30,6 +30,11 @@ bool Section::joinTo(SectionFactory* sf)
     return false;
 }
 
+void Section::getDetail(uint8_t* data, uint16_t len)
+{
+
+}
+
 //##ModelId=555561E1025F
 void Section::resolved()
 {

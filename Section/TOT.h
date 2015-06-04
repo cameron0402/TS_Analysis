@@ -20,8 +20,12 @@ class TOT : public Section
 
     virtual bool joinTo(SectionFactory* sf);
 
+    virtual void resolved();
+
+    virtual void getDetail(uint8_t* data, uint16_t len);
+
     //##ModelId=55640EE902E4
-    uint64_t UTC_time;
+    uint8_t UTC_time[5];
     //##ModelId=55640F0801E8
     uint16_t descriptors_loop_length;
     //##ModelId=55640F1D0376

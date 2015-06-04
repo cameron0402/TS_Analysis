@@ -17,15 +17,9 @@ SDT::SDT(uint8_t* data, uint16_t len)
       section_number(data[6]),
       last_section_number(data[7]),
       original_network_id((data[8] << 8) | data[9]),
+      service_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
-    int index = 11;
-    while(index < len - 4)
-    {
-        ServiceInfo* si = new ServiceInfo(data + index);
-        service_list.push_back(si);
-        index += 5 + si->descriptors_loop_length;
-    }
 }
 
 //##ModelId=5563CE0800BB
@@ -77,7 +71,12 @@ SDT::ServiceInfo::~ServiceInfo()
 
 bool SDT::operator==(const SDT& st)
 {
-    return crc32 == st.crc32;
+    return table_id == st.table_id &&
+           original_network_id == st.original_network_id &&
+           transport_stream_id == st.transport_stream_id &&
+           version_number == st.version_number &&
+           section_number == st.section_number;
+    //return crc32 == st.crc32;
 }
 
 bool SDT::joinTo(SectionFactory* sf)
@@ -90,6 +89,17 @@ bool SDT::joinTo(SectionFactory* sf)
     }
     sf->sdt_list.push_back(this);
     return true;
+}
+
+void SDT::getDetail(uint8_t* data, uint16_t len)
+{
+    int index = 11;
+    while(index < len - 4)
+    {
+        ServiceInfo* si = new ServiceInfo(data + index);
+        service_list.push_back(si);
+        index += 5 + si->descriptors_loop_length;
+    }
 }
 
 void SDT::resolved()

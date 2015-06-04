@@ -25,9 +25,9 @@ class EIT : public Section
         //##ModelId=5563DC7C023A
         uint16_t event_id;
         //##ModelId=5563DC8F00F6
-        uint64_t start_time;
+        uint8_t start_time[5];
         //##ModelId=5563DCA0010D
-        uint32_t duration;
+        uint8_t duration[3];
         //##ModelId=5563DCAF03C8
         uint8_t running_status;
         //##ModelId=5563DCC503D7
@@ -51,6 +51,7 @@ class EIT : public Section
     bool operator ==(const EIT& et);
 
     virtual void resolved();
+    virtual void getDetail(uint8_t* data, uint16_t len);
 
 
     //##ModelId=5563DB5E002F

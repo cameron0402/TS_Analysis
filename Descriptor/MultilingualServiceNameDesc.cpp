@@ -73,7 +73,7 @@ MultilingualServiceNameDesc::~MultilingualServiceNameDesc()
 void MultilingualServiceNameDesc::resolved()
 {
     TiXmlElement* tmp;
-    char arr[16] = {0};
+    char arr[256] = {0};
 
     Descriptor::resolved();
     xml->SetValue("multilingual_service_name_descriptor");
@@ -96,19 +96,27 @@ void MultilingualServiceNameDesc::resolved()
             tms->LinkEndChild(new TiXmlText(arr));
             tmp->LinkEndChild(tms);
 
-            tms = new TiXmlElement("service_provider_name");
-            tms->LinkEndChild(new TiXmlText((const char*)(*sit)->service_provider_name));
-            tmp->LinkEndChild(tms);
+            if((*sit)->service_provider_name_length > 0)
+            {
+                coding_string_to_gb((*sit)->service_provider_name, (uint8_t*)arr, (*sit)->service_provider_name_length);
+                tms = new TiXmlElement("service_provider_name");
+                tms->LinkEndChild(new TiXmlText(arr));
+                tmp->LinkEndChild(tms);
+            }
 
             sprintf(arr, "0x%x", (*sit)->service_name_length);
             tms = new TiXmlElement("service_name_length");
             tms->LinkEndChild(new TiXmlText(arr));
             tmp->LinkEndChild(tms);
 
-            tms = new TiXmlElement("service_name");
-            tms->LinkEndChild(new TiXmlText((const char*)(*sit)->service_name));
-            tmp->LinkEndChild(tms);
-
+            if((*sit)->service_name_length > 0)
+            {
+                coding_string_to_gb((*sit)->service_name, (uint8_t*)arr, (*sit)->service_name_length);
+                tms = new TiXmlElement("service_name");
+                tms->LinkEndChild(new TiXmlText(arr));
+                tmp->LinkEndChild(tms);
+            }
+           
             xml->LinkEndChild(tmp);
         }
     }

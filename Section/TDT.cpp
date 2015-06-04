@@ -9,8 +9,9 @@ TDT::TDT()
 //##ModelId=556406A801F1
 TDT::TDT(uint8_t* data, uint16_t len)
     : Section(data, len),
-      UTC_time((data[3] << 32) | (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7])
+      UTC_time()
 {
+    memcpy(UTC_time, data + 3, 5);
 }
 
 //##ModelId=556406AC01FA
@@ -25,5 +26,19 @@ bool TDT::joinTo(SectionFactory* sf)
     
     sf->tdt = this;
     return true;
+}
+
+void TDT::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[32] = {0};
+
+    Section::resolved();
+    xml->SetAttribute("table_id", table_id);
+
+    utc_to_ymdhms(UTC_time, arr);
+    tmp = new TiXmlElement("UTC_time");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
 }
 

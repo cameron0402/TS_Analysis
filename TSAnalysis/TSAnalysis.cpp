@@ -1,5 +1,82 @@
 #include "TSAnalysis.h"
 #include "../Section/PAT.h"
+#include "../Section/PMT.h"
+
+PCR_Info::PCR_Info(uint16_t pid, uint32_t max_sz)
+    : PID(pid),
+      max_size(max_sz),
+      pkt_num(0),
+      one_pkt_interval(0),
+      number(0),
+      pcr_list(0),
+      itv_list(0),
+      jit_list(0),
+      max_pcr_interval(0),
+      min_pcr_interval(1000),
+      avg_pcr_interval(0),
+      cur_pcr_interval(0),
+      max_pcr_jitter(-1000),
+      min_pcr_jitter(1000),
+      cur_pcr_jitter(0)
+{
+}
+
+PCR_Info::~PCR_Info()
+{
+
+}
+
+void PCR_Info::append(uint64_t pcr)
+{
+    static uint32_t last_pkt_num = 0;
+    static long long last_intv = 0;
+
+    uint64_t tp = 0;
+    if(!pcr_list.empty())
+        tp = pcr_list.back();
+
+    if(pcr_list.size() > max_size)
+    {
+        pcr_list.pop_front();
+    }
+    pcr_list.push_back(pcr);
+
+    ++number;
+
+    if(tp != 0)
+    {
+        long double pcr_intv = (long double)(pcr - tp) / 27000.0;
+        if(pcr_intv > max_pcr_interval) max_pcr_interval = pcr_intv;
+        if(pcr_intv < min_pcr_interval) min_pcr_interval = pcr_intv;
+        avg_pcr_interval = (avg_pcr_interval * (number - 1) + pcr_intv) / number;
+        if(itv_list.size() > max_size)
+        {
+            itv_list.pop_front();
+        }
+        itv_list.push_back(pcr_intv);
+        
+        if(cur_pcr_interval != 0)
+        {
+            long long expect_pcr_intv;
+            long long pcr_jitter;
+            expect_pcr_intv = last_intv * (pkt_num - 1) / (last_pkt_num - 1);
+            pcr_jitter = (pcr - tp) - expect_pcr_intv;
+            if(pcr_jitter > max_pcr_jitter) max_pcr_jitter = pcr_jitter;
+            if(pcr_jitter < min_pcr_jitter) min_pcr_jitter = pcr_jitter;
+            cur_pcr_jitter = pcr_jitter;
+            if(jit_list.size() > max_size)
+            {
+                jit_list.pop_front();
+            }
+            jit_list.push_back(cur_pcr_jitter);
+        }
+
+        cur_pcr_interval = pcr_intv;
+    }
+    last_intv = pcr - tp;
+    last_pkt_num = pkt_num;
+    pkt_num = 0;
+}
 
 TSAnalysis::TSAnalysis()
 {
@@ -78,30 +155,71 @@ int TSAnalysis::get_packet_size(const uint8_t* buf, int size, int* index = NULL)
     return -1;
 }
 
-bool TSAnalysis::is_section_pkt(uint16_t type)
+bool TSAnalysis::is_section_pkt(uint16_t pid)
 {
-    if(type == 0x00 ||
-       type == 0x01 ||
-       type == 0x10 ||
-       type == 0x11 ||
-       type == 0x12 /*||
-       type == 0x14*/)
+    if(/*pid == 0x00  ||
+       pid == 0x01 ||*/
+       pid == 0x10 ||
+       pid == 0x11 ||
+       pid == 0x12 ||
+       pid == 0x14)
     {
         return true;
     }
 
-    if(sf->pat != NULL)
+    /*if(sf->pat != NULL)
     {
         std::list<PAT::ProgInfo*>::iterator pit;
         for(pit = sf->pat->prog_list.begin(); pit != sf->pat->prog_list.end(); pit++)
         {
-            if(type == (*pit)->program_map_PID)
+            if(pid == (*pit)->program_map_PID)
                 return true;
         }
-    }
+    }*/
 
     return false;
     
+}
+
+bool TSAnalysis::is_pcr_pkt(uint16_t pid)
+{
+    if(!sf->pmt_list.empty())
+    {
+        std::list<PMT*>::iterator pit;
+        for(pit = sf->pmt_list.begin(); pit != sf->pmt_list.end(); ++pit)
+        {
+            if(pid == (*pit)->PCR_PID)
+                return true;
+        }
+    }
+    return false;
+}
+
+int64_t TSAnalysis::get_pcr(const uint8_t *buf, int len)
+{
+    if(!((buf[3] >> 5) & 0x1))
+    {
+        //std::cout << "No adaptation field." << std::endl;
+        return -1;
+    }
+
+    const uint8_t* adp = buf + 4;
+    if(adp[0] == 0)
+    {
+        //std::cout << "Adaptation field length is zero." << std::endl;
+        return -1;
+    }
+
+    if(!((adp[1] >> 4) & 0x1))
+    {
+        //std::cout << "PCR flag is not set." << std::endl;
+        return -1;
+    }
+
+    int64_t pcr_base = ((int64_t)adp[2] << 25) | (adp[3] << 17) | (adp[4] << 9) | (adp[5] << 1) | (adp[6] >> 7);
+    int64_t pcr_ext = ((adp[7] & 0x1) << 8) | adp[8];
+
+    return pcr_base * 300 + pcr_ext;
 }
 
 void TSAnalysis::ts_analysis()
@@ -124,9 +242,44 @@ void TSAnalysis::ts_analysis()
     {
         inf.read((char*)test_buf, pkt_sz);
         uint16_t pid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
+
+       /* std::list<PCR_Info*>::iterator pit;
+        for(pit = pcr_info_list.begin(); pit != pcr_info_list.end(); ++pit)
+        {
+            (*pit)->pkt_num++;
+        }
+*/
+        if(pid == 0x1FFF) //empty packet
+            continue;
+
         if(is_section_pkt(pid))
         {
             sf->sectionGather(pid, test_buf);
         }
+
+        /*if(is_pcr_pkt(pid))
+        {
+        int64_t pcr = get_pcr(test_buf, pkt_sz);
+        if(pcr == -1)
+        continue;
+        std::list<PCR_Info*>::iterator pit;
+        bool ex = false;
+        for(pit = pcr_info_list.begin(); pit != pcr_info_list.end(); ++pit)
+        {
+        if((*pit)->PID == pid)
+        {
+        (*pit)->append(pcr);
+        ex = true;
+        break;
+        }
+        }
+
+        if(!ex)
+        {
+        PCR_Info* pi = new PCR_Info(pid);
+        pi->append(pcr);
+        pcr_info_list.push_back(pi);
+        }
+        }*/
     }
 }

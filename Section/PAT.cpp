@@ -14,15 +14,9 @@ PAT::PAT(uint8_t* data, uint16_t len)
       current_next_indicator(data[5] >> 7),
       section_number(data[6]),
       last_section_number(data[7]),
+      prog_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
-    int index = 8;
-    while(index < len - 4)
-    {
-        ProgInfo* pi = new ProgInfo(data + index);
-        prog_list.push_back(pi);
-        index += 4;
-    }
 }
 
 //##ModelId=55582871031A
@@ -51,6 +45,17 @@ PAT::ProgInfo::ProgInfo(uint8_t* data)
 //##ModelId=555D78EE02D5
 PAT::ProgInfo::~ProgInfo()
 {
+}
+
+void PAT::getDetail(uint8_t* data, uint16_t len)
+{
+    int index = 8;
+    while(index < len - 4)
+    {
+        ProgInfo* pi = new ProgInfo(data + index);
+        prog_list.push_back(pi);
+        index += 4;
+    }
 }
 
 bool PAT::joinTo(SectionFactory* sf)
@@ -128,6 +133,9 @@ void PAT::resolved()
 
 bool PAT::operator==(const PAT& pt)
 {
-    return crc32 == pt.crc32;
+    return transport_stream_id == pt.transport_stream_id &&
+           version_number == pt.version_number &&
+           section_number == pt.section_number;
+    //return crc32 == pt.crc32;
 }
 

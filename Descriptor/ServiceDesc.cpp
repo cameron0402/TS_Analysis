@@ -32,7 +32,7 @@ ServiceDesc::~ServiceDesc()
 void ServiceDesc::resolved()
 {
     TiXmlElement* tmp;
-    char arr[16] = {0};
+    char arr[256] = {0};
 
     Descriptor::resolved();
     xml->SetValue("service_descriptor");
@@ -47,17 +47,25 @@ void ServiceDesc::resolved()
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
 
-    tmp = new TiXmlElement("service_provider");
-    tmp->LinkEndChild(new TiXmlText((const char*)service_provider));
-    xml->LinkEndChild(tmp);
+    if(service_provider_length > 0)
+    {
+        coding_string_to_gb(service_provider, (uint8_t*)arr, service_provider_length);
+        tmp = new TiXmlElement("service_provider");
+        tmp->LinkEndChild(new TiXmlText(arr));
+        xml->LinkEndChild(tmp);
+    }
 
     sprintf(arr, "0x%x", service_name_length);
     tmp = new TiXmlElement("service_name_length");
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
 
-    tmp = new TiXmlElement("service_name");
-    tmp->LinkEndChild(new TiXmlText((const char*)service_name));
-    xml->LinkEndChild(tmp);
+    if(service_name_length > 0)
+    {
+        coding_string_to_gb(service_name, (uint8_t*)arr, service_name_length);
+        tmp = new TiXmlElement("service_name");
+        tmp->LinkEndChild(new TiXmlText(arr));
+        xml->LinkEndChild(tmp);
+    }
 }
 

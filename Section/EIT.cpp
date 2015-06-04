@@ -11,12 +11,15 @@ EIT::EventInfo::EventInfo()
 //##ModelId=5563DC47027B
 EIT::EventInfo::EventInfo(uint8_t* data)
     : event_id((data[0] << 8) | data[1]),
-      start_time((data[2] << 32) | (data[3] << 24) | (data[4] << 16) | (data[5] << 8) | data[6]),
-      duration((data[7] << 16) | (data[8] << 8) | data[9]),
+      start_time(),
+      duration(),
       running_status(data[10] >> 5),
       free_CA_mode((data[10] >> 4) & 0x01),
       descriptors_loop_length(((data[10] & 0x0F) << 8) | data[11])
 {
+    memcpy(start_time, data + 2, 5);
+    memcpy(duration, data + 7, 3);
+
     int idx = 0;
     uint8_t* pd = data + 12;
     DescFactory des_fac;
@@ -56,15 +59,9 @@ EIT::EIT(uint8_t* data, uint16_t len)
       original_network_id((data[10] << 8) | data[11]),
       segment_last_section_number(data[12]),
       last_table_id(data[13]),
+      event_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
-    int index = 14;
-    while(index < len - 4)
-    {
-        EventInfo* ei = new EventInfo(data + index);
-        event_list.push_back(ei);
-        index += 12 + ei->descriptors_loop_length;
-    }
 }
 
 //##ModelId=5563DB2B0060
@@ -80,7 +77,23 @@ EIT::~EIT()
 
 bool EIT::operator==(const EIT& et)
 {
-    return crc32 == et.crc32;
+    return table_id == et.table_id &&
+           transport_stream_id == et.transport_stream_id &&
+           service_id == et.service_id &&
+           version_number == et.version_number &&
+		   section_number == et.section_number;
+    //return crc32 == et.crc32;
+}
+
+void EIT::getDetail(uint8_t* data, uint16_t len)
+{
+    int index = 14;
+    while(index < len - 4)
+    {
+        EventInfo* ei = new EventInfo(data + index);
+        event_list.push_back(ei);
+        index += 12 + ei->descriptors_loop_length;
+    }
 }
 
 bool EIT::joinTo(SectionFactory* sf)
@@ -98,7 +111,7 @@ bool EIT::joinTo(SectionFactory* sf)
 void EIT::resolved()
 {
     TiXmlElement* tmp;
-    char arr[16] = {0};
+    char arr[32] = {0};
 
     Section::resolved();
     xml->SetAttribute("table_id", table_id);
@@ -165,12 +178,12 @@ void EIT::resolved()
             tms->LinkEndChild(new TiXmlText(arr));
             tmp->LinkEndChild(tms); 
 
-            sprintf(arr, "0x%x", (*eit)->start_time);
+            utc_to_ymdhms((*eit)->start_time, arr);
             tms = new TiXmlElement("start_time");
             tms->LinkEndChild(new TiXmlText(arr));
             tmp->LinkEndChild(tms); 
 
-            sprintf(arr, "0x%x", (*eit)->duration);
+            utc_to_hms((*eit)->duration, arr);
             tms = new TiXmlElement("duration");
             tms->LinkEndChild(new TiXmlText(arr));
             tmp->LinkEndChild(tms);

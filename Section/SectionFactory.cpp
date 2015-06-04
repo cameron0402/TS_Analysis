@@ -9,6 +9,7 @@
 #include "SDT.h"
 #include "EIT.h"
 #include "TDT.h"
+#include "TOT.h"
 
 SectionFactory* SectionFactory::_instance = NULL;
 
@@ -131,8 +132,18 @@ void SectionFactory::sectionGather(int pid, uint8_t* ts_packet)
             raw_section->recv_length += remain_length;
 
             Section* sec = createSectoin(raw_section);
-            if(sec != NULL && !addSection(sec))
-                delete sec;
+            if(sec != NULL)
+            {
+                if(!addSection(sec))
+                {
+                    delete sec;
+                }   
+                else
+                {
+                    sec->getDetail(raw_section->section_data, raw_section->section_data_length);
+                }
+            }
+            
             raw_section->Reset();
             
             /* A TS packet may contain any number of sections, only the first
@@ -192,6 +203,8 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
     {
         if(data[0] == 0x70)
             return new TDT(data, len);
+        if(data[0] == 0x73)
+            return new TOT(data, len);
     }
 
     if(pat != NULL)

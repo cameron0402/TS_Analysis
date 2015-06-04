@@ -14,6 +14,8 @@ class Section
     //##ModelId=555561E1025F
     virtual void resolved();
 
+    virtual void getDetail(uint8_t* data, uint16_t len);
+
     //##ModelId=5555A63E015D
     Section();
 

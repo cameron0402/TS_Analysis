@@ -17,8 +17,10 @@ class TDT : public Section
 
     virtual bool joinTo(SectionFactory* sf);
 
+    virtual void resolved();
+
     //##ModelId=556406DE0301
-    uint64_t UTC_time;
+    uint8_t UTC_time[5];
 };
 
 

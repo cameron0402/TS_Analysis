@@ -11,18 +11,10 @@ TOT::TOT()
 //##ModelId=55640EAC00FC
 TOT::TOT(uint8_t* data, uint16_t len)
     : Section(data, len),
-      UTC_time((data[3] << 32) | (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7]),
       descriptors_loop_length(((data[8] & 0xF) << 8) | data[9]),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
-    int index = 10;
-    DescFactory des_fac;
-    while(index < len - 4)
-    {
-        Descriptor* des = des_fac.createDesc(data[index], data + index);
-        desc_list.push_back(des);
-        index += des->length + 2;
-    }
+    memcpy(UTC_time, data + 3, 5);
 }
 
 //##ModelId=55640EAF034C
@@ -43,5 +35,53 @@ bool TOT::joinTo(SectionFactory* sf)
     
     sf->tot = this;
     return true;
+}
+
+void TOT::getDetail(uint8_t* data, uint16_t len)
+{
+    int index = 10;
+    DescFactory des_fac;
+    while(index < len - 4)
+    {
+        Descriptor* des = des_fac.createDesc(data[index], data + index);
+        desc_list.push_back(des);
+        index += des->length + 2;
+    }
+}
+
+void TOT::resolved()
+{
+    TiXmlElement* tmp;
+    char arr[32] = {0};
+
+    Section::resolved();
+    xml->SetAttribute("table_id", table_id);
+
+    utc_to_ymdhms(UTC_time, arr);
+    tmp = new TiXmlElement("UTC_time");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    sprintf(arr, "0x%x", descriptors_loop_length);
+    tmp = new TiXmlElement("descriptors_loop_length");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
+
+    if(!desc_list.empty())
+    {
+        tmp = new TiXmlElement("Descriptors");
+        std::list<Descriptor*>::iterator dit;
+        for(dit = desc_list.begin(); dit != desc_list.end(); ++dit)
+        {
+            (*dit)->resolved();
+            tmp->LinkEndChild((*dit)->xml);
+        }
+        xml->LinkEndChild(tmp);
+    }
+
+    sprintf(arr, "0x%x", crc32);
+    tmp = new TiXmlElement("CRC32");
+    tmp->LinkEndChild(new TiXmlText(arr));
+    xml->LinkEndChild(tmp);
 }
 

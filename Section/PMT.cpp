@@ -18,25 +18,10 @@ PMT::PMT(uint8_t* data, uint16_t len)
       last_section_number(data[7]),
       PCR_PID(((data[8] & 0x1F) << 8) | data[9]),
       program_info_length(((data[10] & 0x0F) << 8) | data[11]),
+      desc_list(),
+      stream_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
-    int index = 0;
-    uint8_t* pd = data + 12;
-    DescFactory des_fac;
-    while(index < program_info_length)
-    {
-        Descriptor* des = des_fac.createDesc(pd[index], pd + index);
-        index += des->length + 2;
-        desc_list.push_back(des);
-    }
-
-    index = 12 + program_info_length;
-    while(index < len - 4)
-    {
-        StreamInfo* si = new StreamInfo(data + index);
-        index += si->info_length + 5;
-        stream_list.push_back(si);
-    }
 }
 
 //##ModelId=5558288B00A9
@@ -104,7 +89,30 @@ bool PMT::joinTo(SectionFactory* sf)
 
 bool PMT::operator==(const PMT& pt)
 {
-    return crc32 == pt.crc32;
+    return program_number == pt.program_number &&
+           version_number == pt.version_number &&
+           section_number == pt.section_number;
+}
+
+void PMT::getDetail(uint8_t* data, uint16_t len)
+{
+    int index = 0;
+    uint8_t* pd = data + 12;
+    DescFactory des_fac;
+    while(index < program_info_length)
+    {
+        Descriptor* des = des_fac.createDesc(pd[index], pd + index);
+        index += des->length + 2;
+        desc_list.push_back(des);
+    }
+
+    index = 12 + program_info_length;
+    while(index < len - 4)
+    {
+        StreamInfo* si = new StreamInfo(data + index);
+        index += si->info_length + 5;
+        stream_list.push_back(si);
+    }
 }
 
 void PMT::resolved()

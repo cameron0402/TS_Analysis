@@ -15,16 +15,9 @@ CAT::CAT(uint8_t* data, uint16_t len)
       current_next_indicator(data[5] >> 7),
       section_number(data[6]),
       last_section_number(data[7]),
+      desc_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
-    int index = 8;
-    DescFactory des_fac;
-    while(index < len - 4)
-    {
-        Descriptor* des = des_fac.createDesc(data[index], data + index);
-        index += des->length + 2;
-        desc_list.push_back(des);
-    }
 }
 
 CAT::~CAT()
@@ -50,9 +43,24 @@ bool CAT::joinTo(SectionFactory* sf)
     return true;
 }
 
+void CAT::getDetail(uint8_t* data, uint16_t len)
+{
+    int index = 8;
+    DescFactory des_fac;
+    while(index < len - 4)
+    {
+        Descriptor* des = des_fac.createDesc(data[index], data + index);
+        index += des->length + 2;
+        desc_list.push_back(des);
+    }
+}
+
 bool CAT::operator==(const CAT& ct)
 {
-    return crc32 == ct.crc32;
+    return version_number == ct.version_number &&
+           section_number == ct.section_number &&
+           current_next_indicator == ct.current_next_indicator;
+    //return crc32 == ct.crc32;
 }
 
 void CAT::resolved()

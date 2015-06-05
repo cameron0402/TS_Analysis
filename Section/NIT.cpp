@@ -77,14 +77,17 @@ NIT::TransStreamInfo::~TransStreamInfo()
 
 bool NIT::joinTo(SectionFactory* sf)
 {
-    std::list<NIT*>::iterator nit;
+    /*std::list<NIT*>::iterator nit;
     for(nit = sf->nit_list.begin(); nit != sf->nit_list.end(); ++nit)
     {
-        if(*(*nit) == *this)
-            return false;
+    if(*(*nit) == *this)
+    return false;
     }
     sf->nit_list.push_back(this);
-    return true;
+    return true;*/
+    std::pair<std::set<NIT*, cmp_secp<NIT>>::iterator, bool> ret;
+    ret = sf->nit_list.insert(this);
+    return ret.second;
 }
 
 void NIT::getDetail(uint8_t* data, uint16_t len)
@@ -117,6 +120,29 @@ bool NIT::operator ==(const NIT& nt)
            section_number == nt.section_number;
            
     //return crc32 == nt.crc32;
+}
+
+bool NIT::operator<(const NIT& nt)
+{
+    if(table_id < nt.table_id)
+        return true;
+    else if(table_id == nt.table_id)
+    {
+        if(network_id < nt.network_id)
+            return true;
+        else if(network_id == nt.network_id)
+        {
+            if(version_number < nt.version_number)
+                return true;
+            else if(version_number == nt.version_number)
+            {
+                if(section_number < nt.section_number)
+                    return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void NIT::resolved()

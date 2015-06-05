@@ -46,6 +46,7 @@ class PMT : public Section
     virtual void resolved();
     virtual void getDetail(uint8_t* data, uint16_t len);
     bool operator ==(const PMT& pt);
+    bool operator <(const PMT& pt);
 
     //##ModelId=5562969D029A
     uint16_t program_number;
@@ -70,7 +71,5 @@ class PMT : public Section
     //##ModelId=5562973302FB
     uint32_t crc32;
 };
-
-
 
 #endif /* PMT_H_HEADER_INCLUDED_AAAA7F38 */

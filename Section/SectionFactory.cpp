@@ -1,15 +1,5 @@
 #include "SectionFactory.h"
-#include "Section.h"
 #include "SectionData.h"
-#include "PAT.h"
-#include "PMT.h"
-#include "CAT.h"
-#include "NIT.h"
-#include "BAT.h"
-#include "SDT.h"
-#include "EIT.h"
-#include "TDT.h"
-#include "TOT.h"
 
 SectionFactory* SectionFactory::_instance = NULL;
 
@@ -235,12 +225,12 @@ SectionFactory* SectionFactory::GetInstance()
 //##ModelId=555597630041
 SectionFactory::SectionFactory()
     : pat(NULL),
-      pmt_list(0),
-      nit_list(0),
-      cat_list(0),
-      bat_list(0),
-      sdt_list(0),
-      eit_list(0),
+      pmt_list(),
+      nit_list(),
+      cat_list(),
+      bat_list(),
+      sdt_list(),
+      eit_list(),
       tdt(NULL),
       tot(NULL),
       raw_sarr()
@@ -252,21 +242,21 @@ SectionFactory::~SectionFactory()
     if(pat != NULL)
         delete pat;
 
-    std::list<PMT*>::iterator pit;
+    std::set<PMT*, cmp_secp<PMT>>::iterator pit;
     for(pit = pmt_list.begin(); pit != pmt_list.end(); ++pit)
     {
         delete (*pit);
     }
     pmt_list.clear();
 
-    std::list<CAT*>::iterator cit;
+    std::set<CAT*, cmp_secp<CAT>>::iterator cit;
     for(cit = cat_list.begin(); cit != cat_list.end(); ++cit)
     {
         delete (*cit);
     }
     cat_list.clear();
 
-    std::list<NIT*>::iterator nit;
+    std::set<NIT*, cmp_secp<NIT>>::iterator nit;
     for(nit = nit_list.begin(); nit != nit_list.end(); ++nit)
     {
         delete (*nit);
@@ -280,14 +270,14 @@ SectionFactory::~SectionFactory()
     }
     bat_list.clear();
 
-    std::list<SDT*>::iterator sit;
+    std::set<SDT*, cmp_secp<SDT>>::iterator sit;
     for(sit = sdt_list.begin(); sit != sdt_list.end(); ++sit)
     {
         delete (*sit);
     }
     sdt_list.clear();
 
-    std::list<EIT*>::iterator eit;
+    std::set<EIT*, cmp_secp<EIT>>::iterator eit;
     for(eit = eit_list.begin(); eit != eit_list.end(); ++eit)
     {
         delete (*eit);

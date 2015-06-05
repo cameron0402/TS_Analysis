@@ -49,6 +49,7 @@ class EIT : public Section
 
     virtual bool joinTo(SectionFactory* sf);
     bool operator ==(const EIT& et);
+    bool operator <(const EIT& et);
 
     virtual void resolved();
     virtual void getDetail(uint8_t* data, uint16_t len);
@@ -77,7 +78,5 @@ class EIT : public Section
     //##ModelId=5563E3B0004B
     uint32_t crc32;
 };
-
-
 
 #endif /* EIT_H_HEADER_INCLUDED_AA9C5834 */

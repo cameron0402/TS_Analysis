@@ -77,14 +77,17 @@ PMT::StreamInfo::~StreamInfo()
 
 bool PMT::joinTo(SectionFactory* sf)
 {
-    std::list<PMT*>::iterator pit;
+    /*std::list<PMT*>::iterator pit;
     for(pit = sf->pmt_list.begin(); pit != sf->pmt_list.end(); ++pit)
     {
-        if(*(*pit) == *this)
-            return false;
+    if(*(*pit) == *this)
+    return false;
     }
     sf->pmt_list.push_back(this);
-    return true;
+    return true;*/
+    std::pair<std::set<PMT*, cmp_secp<PMT>>::iterator, bool> ret;
+    ret = sf->pmt_list.insert(this);
+    return ret.second;
 }
 
 bool PMT::operator==(const PMT& pt)
@@ -92,6 +95,23 @@ bool PMT::operator==(const PMT& pt)
     return program_number == pt.program_number &&
            version_number == pt.version_number &&
            section_number == pt.section_number;
+}
+
+bool PMT::operator<(const PMT& pt)
+{
+    if(program_number < pt.program_number)
+        return true;
+    else if(program_number == pt.program_number)
+    {
+        if(version_number < pt.version_number)
+            return true;
+        else if(version_number == pt.version_number)
+        {
+            if(section_number < pt.section_number)
+                return true;
+        }
+    }
+    return false;
 }
 
 void PMT::getDetail(uint8_t* data, uint16_t len)

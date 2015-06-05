@@ -185,7 +185,7 @@ bool TSAnalysis::is_pcr_pkt(uint16_t pid)
 {
     if(!sf->pmt_list.empty())
     {
-        std::list<PMT*>::iterator pit;
+        std::set<PMT*, cmp_secp<PMT>>::iterator pit;
         for(pit = sf->pmt_list.begin(); pit != sf->pmt_list.end(); ++pit)
         {
             if(pid == (*pit)->PCR_PID)

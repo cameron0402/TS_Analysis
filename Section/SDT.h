@@ -48,6 +48,7 @@ class SDT : public Section
 
     virtual bool joinTo(SectionFactory* sf);
     bool operator ==(const SDT& st);
+    bool operator <(const SDT& st);
 
     virtual void resolved();
     virtual void getDetail(uint8_t* data, uint16_t len);
@@ -69,7 +70,5 @@ class SDT : public Section
     //##ModelId=5563CD9902C2
     uint32_t crc32;
 };
-
-
 
 #endif /* SDT_H_HEADER_INCLUDED_AA9C3B80 */

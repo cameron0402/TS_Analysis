@@ -18,6 +18,7 @@ class CAT : public Section
     virtual void resolved();
     virtual void getDetail(uint8_t* data, uint16_t len);
     bool operator ==(const CAT& ct);
+    bool operator <(const CAT& ct);
 
     //##ModelId=5562980E020A
     uint8_t version_number;
@@ -33,7 +34,5 @@ class CAT : public Section
     //##ModelId=5562991F024A
     uint32_t crc32;
 };
-
-
 
 #endif /* CAT_H_HEADER_INCLUDED_AAAA6611 */

@@ -39,6 +39,15 @@ class Section
 
 };
 
+template<class T>
+struct cmp_secp
+{
+    bool operator()(T* secp1, T* secp2) const 
+    {
+        return (*secp1) < (*secp2);
+    }
+};
+
 
 
 #endif /* SECTION_H_HEADER_INCLUDED_AA9D5029 */

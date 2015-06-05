@@ -85,6 +85,34 @@ bool EIT::operator==(const EIT& et)
     //return crc32 == et.crc32;
 }
 
+bool EIT::operator<(const EIT& et)
+{
+    if(table_id < et.table_id)
+        return true;
+    else if(table_id == et.table_id)
+    {
+        if(transport_stream_id < et.transport_stream_id)
+            return true;
+        else if(transport_stream_id == et.transport_stream_id)
+        {
+            if(service_id < et.service_id)
+                return true;
+            else if(service_id == et.service_id)
+            {
+                if(version_number < et.version_number)
+                    return true;
+                else if(version_number == et.version_number)
+                {
+                    if(section_number < et.section_number)
+                        return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 void EIT::getDetail(uint8_t* data, uint16_t len)
 {
     int index = 14;
@@ -98,14 +126,19 @@ void EIT::getDetail(uint8_t* data, uint16_t len)
 
 bool EIT::joinTo(SectionFactory* sf)
 {
-    std::list<EIT*>::iterator eit;
+    /*std::list<EIT*>::iterator eit;
     for(eit = sf->eit_list.begin(); eit != sf->eit_list.end(); ++eit)
     {
-        if(*(*eit) == *this)
-            return false;
+    if(*(*eit) == *this)
+    return false;
     }
     sf->eit_list.push_back(this);
-    return true;
+    return true;*/
+
+    std::pair<std::set<EIT*, cmp_secp<EIT>>::iterator, bool> ret;
+    ret = sf->eit_list.insert(this);
+
+    return ret.second;
 }
 
 void EIT::resolved()
@@ -225,3 +258,7 @@ void EIT::resolved()
     xml->LinkEndChild(tmp);
 }
 
+bool cmp_eitp(EIT* eit1, EIT* eit2)
+{
+    return (*eit1) < (*eit2);
+}

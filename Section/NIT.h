@@ -43,6 +43,7 @@ class NIT : public Section
     virtual void resolved();
     virtual void getDetail(uint8_t* data, uint16_t len);
     bool operator ==(const NIT& nt);
+    bool operator <(const NIT& nt);
     //##ModelId=5562978900BC
     uint16_t network_id;
     //##ModelId=5562979C021E
@@ -66,7 +67,5 @@ class NIT : public Section
     uint32_t crc32;
     
 };
-
-
 
 #endif /* NIT_H_HEADER_INCLUDED_AAAA2DF4 */

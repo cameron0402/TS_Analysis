@@ -79,16 +79,46 @@ bool SDT::operator==(const SDT& st)
     //return crc32 == st.crc32;
 }
 
+bool SDT::operator<(const SDT& st)
+{
+    if(table_id < st.table_id)
+        return true;
+    else if(table_id == st.table_id)
+    {
+        if(original_network_id < st.original_network_id)
+            return true;
+        else if(original_network_id == st.original_network_id)
+        {
+            if(transport_stream_id < st.transport_stream_id)
+                return true;
+            else if(transport_stream_id == st.transport_stream_id)
+            {
+                if(version_number < st.version_number)
+                    return true;
+                else if(version_number == st.version_number)
+                {
+                    if(section_number < st.section_number)
+                        return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 bool SDT::joinTo(SectionFactory* sf)
 {
-    std::list<SDT*>::iterator sit;
+    /* std::list<SDT*>::iterator sit;
     for(sit = sf->sdt_list.begin(); sit != sf->sdt_list.end(); ++sit)
     {
-        if(*(*sit) == *this)
-            return false;
+    if(*(*sit) == *this)
+    return false;
     }
     sf->sdt_list.push_back(this);
-    return true;
+    return true;*/
+    std::pair<std::set<SDT*, cmp_secp<SDT>>::iterator, bool> ret;
+    ret = sf->sdt_list.insert(this);
+    return ret.second;
 }
 
 void SDT::getDetail(uint8_t* data, uint16_t len)

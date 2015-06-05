@@ -2,16 +2,16 @@
 #define SECTIONFACTORY_H_HEADER_INCLUDED_AAAA5AA3
 
 #include "../def.h"
-class Section;
-class PMT;
-class PAT;
-class NIT;
-class CAT;
-class BAT;
-class SDT;
-class EIT;
-class TDT;
-class TOT;
+#include "BAT.h"
+#include "CAT.h"
+#include "EIT.h"
+#include "NIT.h"
+#include "PAT.h"
+#include "PMT.h"
+#include "SDT.h"
+#include "TDT.h"
+#include "TOT.h"
+
 class SectionData;
 
 //##ModelId=55554FBB02A9
@@ -33,21 +33,22 @@ class SectionFactory
     virtual ~SectionFactory();
 
     //##ModelId=55554FD7004E
-    std::list<PMT*> pmt_list;
+    std::set<PMT*, cmp_secp<PMT>> pmt_list;
     //##ModelId=555EC4BE00E8
     PAT* pat;
   
     //##ModelId=555EC4CC023F
-    std::list<NIT*> nit_list;
+    std::set<NIT*, cmp_secp<NIT>> nit_list;
   
     //##ModelId=555EC4EC006E
-    std::list<CAT*> cat_list;
+    std::set<CAT*, cmp_secp<CAT>> cat_list;
 
     std::list<BAT*> bat_list;
 
-    std::list<SDT*> sdt_list;
+    std::set<SDT*, cmp_secp<SDT>> sdt_list;
 
-    std::list<EIT*> eit_list;
+    //std::list<EIT*> eit_list;
+    std::set<EIT*, cmp_secp<EIT>> eit_list;
 
     TDT* tdt;
 

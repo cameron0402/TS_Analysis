@@ -39,6 +39,7 @@ class BAT : public Section
     virtual bool joinTo(SectionFactory* sf);
     virtual void getDetail(uint8_t* data, uint16_t len);
     bool operator ==(const BAT& bt);
+    //bool operator <(const BAT& bt);
 
     //##ModelId=5562AF040157
     uint16_t bouquet_id;

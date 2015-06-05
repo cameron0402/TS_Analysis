@@ -33,14 +33,18 @@ CAT::~CAT()
 
 bool CAT::joinTo(SectionFactory* sf)
 {
-    std::list<CAT*>::iterator cit;
+    /*std::list<CAT*>::iterator cit;
     for(cit = sf->cat_list.begin(); cit != sf->cat_list.end(); ++cit)
     {
-        if(*(*cit) == *this)
-            return false;
+    if(*(*cit) == *this)
+    return false;
     }
     sf->cat_list.push_back(this);
-    return true;
+    return true;*/
+
+    std::pair<std::set<CAT*, cmp_secp<CAT>>::iterator, bool> ret;
+    ret = sf->cat_list.insert(this);
+    return ret.second;
 }
 
 void CAT::getDetail(uint8_t* data, uint16_t len)
@@ -61,6 +65,24 @@ bool CAT::operator==(const CAT& ct)
            section_number == ct.section_number &&
            current_next_indicator == ct.current_next_indicator;
     //return crc32 == ct.crc32;
+}
+
+bool CAT::operator<(const CAT& ct)
+{
+    if(version_number < ct.version_number)
+        return true;
+    else if(version_number == ct.version_number)
+    {
+        if(section_number < ct.section_number)
+            return true;
+        else if(section_number == ct.section_number)
+        {
+            if(current_next_indicator < ct.current_next_indicator)
+                return true;
+        }
+    }
+
+    return false;
 }
 
 void CAT::resolved()

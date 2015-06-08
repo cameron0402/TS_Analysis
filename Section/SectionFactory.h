@@ -18,7 +18,6 @@ class SectionData;
 class SectionFactory
 {
   public:
-    enum {MAX_PID_NUM = 8192};
     //##ModelId=5555501D00F6
     bool addSection(Section* section);
 

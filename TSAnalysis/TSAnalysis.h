@@ -3,75 +3,59 @@
 
 #include "../Section/SectionFactory.h"
 
-class PCR_Info
+enum PID_type {PNUL, SECTION, ELE_STREAM};
+
+struct TS_err
 {
-public:
+    int err;
 
-    PCR_Info(uint16_t pid = 0xFFFF, uint32_t max_sz = 100);
-    ~PCR_Info();
+    int level1_err;
+    int level2_err;
+    int level3_err;
 
-    void append(uint64_t pcr);
-
-    long double MaxPCRInterval() {return max_pcr_interval;}
-    long double MinPCRInterval() {return min_pcr_interval;}
-    long double AvgPCRInterval() {return avg_pcr_interval;}
-
-    /*long double MaxPCRJitter() {return max_pcr_jitter;}
-    long double MinPCRJitter() {return min_pcr_jitter;}
-    long double CurPCRJitter() {return cur_pcr_jitter;}*/
-
-    uint32_t Number() {return number;}
-
-    uint16_t PID;
-    uint32_t max_size;
-    // pkt number between two pcr
-    uint32_t pkt_num;
-    double one_pkt_interval;
-private:
-    uint32_t number;
-    std::list<int64_t> pcr_list;
-    std::list<double> itv_list;
-    std::list<double> jit_list;
-   
-    // ms
-    long double max_pcr_interval;
-    long double min_pcr_interval;
-    long double avg_pcr_interval;
-    long double cur_pcr_interval;
-
-    // ns
-    long long max_pcr_jitter;
-    long long min_pcr_jitter;
-    long long cur_pcr_jitter;
+    /* First priority: necessary for de-codability (basic monitoring) */
+    int sync_loss_err;
+    int sync_byte_err;
 };
+
 
 class TSAnalysis
 {
 public:
-    enum {TS_PACKET_SIZE = 188};
-    enum {TS_DVHS_PACKET_SIZE = 192};
-    enum {TS_FEC_PACKET_SIZE = 204};
-    enum {TS_MAX_PACKET_SIZE = 204};
+
+    struct PID_state
+    {
+        PID_type type;
+        char* description;
+        bool scrambling_flag;
+        float avg_bitrate;
+        float ratio;
+        uint32_t pkt_num;
+        uint32_t cc_err_num;
+    };
 
     TSAnalysis();
     TSAnalysis(char* infile);
     virtual ~TSAnalysis();
 
     void ts_analysis();
-    int64_t get_pcr(const uint8_t *buf, int len);
+    TS_err ts_err;
+    TiXmlElement* err_xml;
 
 private:
-    int analyze(const uint8_t *buf, int size, int packet_size, int *index);
-    int get_packet_size(const uint8_t *buf, int size, int* index);
+    int analyze(const uint8_t *buf, int size, int packet_size, int *index); 
+    int get_packet_size(const uint8_t *buf, int size, int* index); // get the packet size and find the start position
     bool is_section_pkt(uint16_t pid);
-    bool is_pcr_pkt(uint16_t pid);
+
+    int synchronous(int pkt_sz); //when sync_err occurs, this function to find the sync byte again
+
+    PID_state ps[MAX_PID_NUM];
+    bool pmt_set;
 
     std::ifstream inf;
     char* in_ts_file;
 
     SectionFactory* sf;
-    
-    std::list<PCR_Info*> pcr_info_list;
 };
 
 #endif

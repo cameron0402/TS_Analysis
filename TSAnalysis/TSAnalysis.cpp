@@ -2,81 +2,62 @@
 #include "../Section/PAT.h"
 #include "../Section/PMT.h"
 
-PCR_Info::PCR_Info(uint16_t pid, uint32_t max_sz)
-    : PID(pid),
-      max_size(max_sz),
-      pkt_num(0),
-      one_pkt_interval(0),
-      number(0),
-      pcr_list(0),
-      itv_list(0),
-      jit_list(0),
-      max_pcr_interval(0),
-      min_pcr_interval(1000),
-      avg_pcr_interval(0),
-      cur_pcr_interval(0),
-      max_pcr_jitter(-1000),
-      min_pcr_jitter(1000),
-      cur_pcr_jitter(0)
+char* section_desc[] = 
 {
-}
+    // 0x00 - 0x1F
+    "PAT", "CAT", "TSDT", "", "", "", "",
+    "", "", "", "", "", "", "", "", "", 
+    "NIT", "SDT/BAT", "EIT", "RST", "TDT/TOT", "", "", "", 
+    "", "", "", "", "", "", "DIT", "SIT",
 
-PCR_Info::~PCR_Info()
+    // depends on other section
+    "PMT"
+};
+
+char* stream_desc[] = 
 {
+    // 0x00 - 0x1E
+    "ITU-T | ISO/IEC Reserved",
+    "ISO/IEC 11172-2 Video",
+    "ITU-T Rec. H.262 | ISO/IEC 13818-2 Video or ISO/IEC 11172-2 constrained parameter video stream",
+    "ISO/IEC 11172-3 Audio",
+    "ISO/IEC 13818-3 Audio",
+    "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 private_sections",
+    "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 PES packets containing private data",
+    "ISO/IEC 13522 MHEG",
+    "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 Annex A DSM-CC",
+    "ITU-T Rec. H.222.1",
+    "ISO/IEC 13818-6 type A",
+    "ISO/IEC 13818-6 type B",
+    "ISO/IEC 13818-6 type C",
+    "ISO/IEC 13818-6 type D",
+    "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 auxiliary",
+    "ISO/IEC 13818-7 Audio with ADTS transport syntax",
+    "ISO/IEC 14496-2 Visual",
+    "ISO/IEC 14496-3 Audio with the LATM transport syntax as defined in ISO/IEC 14496-3/Amd.1",
+    "ISO/IEC 14496-1 SL-packetized stream or FlexMux stream carried in PES packets",
+    "ISO/IEC 14496-1 SL-packetized stream or FlexMux stream carried in ISO/IEC 14496_sections",
+    "ISO/IEC 13818-6 Synchronized Download Protocol",
+    "Metadata carried in PES packets",
+    "Metadata carried in metadata_sections",
+    "Metadata carried in ISO/IEC 13818-6 Data Carousel",
+    "Metadata carried in ISO/IEC 13818-6 Object Carousel",
+    "Metadata carried in ISO/IEC 13818-6 Synchronized Download Protocol",
+    "IPMP stream (defined in ISO/IEC 13818-11, MPEG-2 IPMP)",
+    "AVC video stream as defined in ITU-T Rec. H.264 | ISO/IEC 14496-10 Video",
+    "ISO/IEC 14496-3 Audio, without using any additional transport syntax, such as DST, ALS and SLS",
+    "ISO/IEC 14496-17 Text",
+    "Auxiliary video stream as defined in ISO/IEC 23002-3",
 
-}
+    // 0x1F - 0x7E
+    "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 Reserved",
 
-void PCR_Info::append(uint64_t pcr)
-{
-    static uint32_t last_pkt_num = 0;
-    static long long last_intv = 0;
+    // 0x7F
+    "IPMP stream",
 
-    uint64_t tp = 0;
-    if(!pcr_list.empty())
-        tp = pcr_list.back();
-
-    if(pcr_list.size() > max_size)
-    {
-        pcr_list.pop_front();
-    }
-    pcr_list.push_back(pcr);
-
-    ++number;
-
-    if(tp != 0)
-    {
-        long double pcr_intv = (long double)(pcr - tp) / 27000.0;
-        if(pcr_intv > max_pcr_interval) max_pcr_interval = pcr_intv;
-        if(pcr_intv < min_pcr_interval) min_pcr_interval = pcr_intv;
-        avg_pcr_interval = (avg_pcr_interval * (number - 1) + pcr_intv) / number;
-        if(itv_list.size() > max_size)
-        {
-            itv_list.pop_front();
-        }
-        itv_list.push_back(pcr_intv);
-        
-        if(cur_pcr_interval != 0)
-        {
-            long long expect_pcr_intv;
-            long long pcr_jitter;
-            expect_pcr_intv = last_intv * (pkt_num - 1) / (last_pkt_num - 1);
-            pcr_jitter = (pcr - tp) - expect_pcr_intv;
-            if(pcr_jitter > max_pcr_jitter) max_pcr_jitter = pcr_jitter;
-            if(pcr_jitter < min_pcr_jitter) min_pcr_jitter = pcr_jitter;
-            cur_pcr_jitter = pcr_jitter;
-            if(jit_list.size() > max_size)
-            {
-                jit_list.pop_front();
-            }
-            jit_list.push_back(cur_pcr_jitter);
-        }
-
-        cur_pcr_interval = pcr_intv;
-    }
-    last_intv = pcr - tp;
-    last_pkt_num = pkt_num;
-    pkt_num = 0;
-}
+    //0x80 - 0xFF
+    "User Private"
+};
 
 TSAnalysis::TSAnalysis()
 {
@@ -84,14 +65,27 @@ TSAnalysis::TSAnalysis()
 }
 
 TSAnalysis::TSAnalysis(char* infile)
-    : in_ts_file(infile),
+    : ts_err(),
+      err_xml(new TiXmlElement("ERROR_LOG")),
+      ps(),
+      pmt_set(false),
+      in_ts_file(infile),
       inf(infile, std::ifstream::binary)
 {
+    int i;
+    for(i = 0; i <= 0x1F; i++)
+    {
+        ps[i].type = SECTION;
+        ps[i].description = section_desc[i];
+    }
 }
 
 
 TSAnalysis::~TSAnalysis()
 {
+    if(err_xml != NULL)
+        delete err_xml;
+       
     inf.close();
 }
 
@@ -157,69 +151,67 @@ int TSAnalysis::get_packet_size(const uint8_t* buf, int size, int* index = NULL)
 
 bool TSAnalysis::is_section_pkt(uint16_t pid)
 {
-    if(/*pid == 0x00  ||
-       pid == 0x01 ||*/
-       pid == 0x10 ||
-       pid == 0x11 ||
-       pid == 0x12 ||
-       pid == 0x14)
+    if(!pmt_set)
     {
-        return true;
-    }
-
-    /*if(sf->pat != NULL)
-    {
-        std::list<PAT::ProgInfo*>::iterator pit;
-        for(pit = sf->pat->prog_list.begin(); pit != sf->pat->prog_list.end(); pit++)
+        if(sf->pat != NULL)
         {
-            if(pid == (*pit)->program_map_PID)
-                return true;
-        }
-    }*/
-
-    return false;
-    
-}
-
-bool TSAnalysis::is_pcr_pkt(uint16_t pid)
-{
-    if(!sf->pmt_list.empty())
-    {
-        std::set<PMT*, cmp_secp<PMT>>::iterator pit;
-        for(pit = sf->pmt_list.begin(); pit != sf->pmt_list.end(); ++pit)
-        {
-            if(pid == (*pit)->PCR_PID)
-                return true;
+            std::list<PAT::ProgInfo*>::iterator pit;
+            for(pit = sf->pat->prog_list.begin(); pit != sf->pat->prog_list.end(); pit++)
+            {
+                ps[(*pit)->program_map_PID].type = SECTION; 
+                ps[(*pit)->program_map_PID].description = section_desc[0x20];
+            }
+            pmt_set = true;
         }
     }
-    return false;
+   
+    return ps[pid].type == SECTION;   
 }
 
-int64_t TSAnalysis::get_pcr(const uint8_t *buf, int len)
+int TSAnalysis::synchronous(int pkt_sz)
 {
-    if(!((buf[3] >> 5) & 0x1))
+    int idx = 0;
+    char buf[TS_MAX_PACKET_SIZE * 6] = {0};
+    inf.seekg(-pkt_sz, inf.cur);
+
+    TiXmlElement* err = new TiXmlElement("err");
+    err->SetAttribute("num", ts_err.err);
+    err->SetAttribute("time", inf.tellg());
+    err->SetAttribute("pos", "");
+
+    inf.read(buf, TS_MAX_PACKET_SIZE * 6);
+
+    while(idx < pkt_sz * 3)
     {
-        //std::cout << "No adaptation field." << std::endl;
-        return -1;
+        if(buf[idx] == 0x47)
+        {
+            if(buf[idx + pkt_sz] == 0x47 &&
+               buf[idx + pkt_sz * 2] == 0x47)
+            {
+                if(idx == pkt_sz)
+                {
+                    ++ts_err.sync_byte_err;
+                    err->SetAttribute("type", "同步字节错误");
+                    err->SetAttribute("description", "TS同步字节不等于0x47");
+                }
+                else
+                {
+                    ++ts_err.sync_loss_err;
+                    err->SetAttribute("type", "同步丢失错误");
+                    err->SetAttribute("description", "TS同步字节0x47丢失");
+                }
+
+                err_xml->LinkEndChild(err);
+
+                inf.seekg(idx - TS_MAX_PACKET_SIZE * 6, inf.cur);
+
+                return idx;
+            }
+        }
+        ++idx;
     }
 
-    const uint8_t* adp = buf + 4;
-    if(adp[0] == 0)
-    {
-        //std::cout << "Adaptation field length is zero." << std::endl;
-        return -1;
-    }
-
-    if(!((adp[1] >> 4) & 0x1))
-    {
-        //std::cout << "PCR flag is not set." << std::endl;
-        return -1;
-    }
-
-    int64_t pcr_base = ((int64_t)adp[2] << 25) | (adp[3] << 17) | (adp[4] << 9) | (adp[5] << 1) | (adp[6] >> 7);
-    int64_t pcr_ext = ((adp[7] & 0x1) << 8) | adp[8];
-
-    return pcr_base * 300 + pcr_ext;
+    return -1;
 }
 
 void TSAnalysis::ts_analysis()
@@ -232,7 +224,7 @@ void TSAnalysis::ts_analysis()
     pkt_sz = get_packet_size(test_buf, TS_MAX_PACKET_SIZE * 6, &st_idx);
     if(pkt_sz == -1)
     {
-        std::cout << "could not analysis the TS!\n";
+        std::cout << "can't find the sync-byte and can't analysis the TS!\n";
         return ;
     }
 
@@ -240,46 +232,32 @@ void TSAnalysis::ts_analysis()
     sf = SectionFactory::GetInstance();
     while(!inf.eof())
     {
-        inf.read((char*)test_buf, pkt_sz);
-        uint16_t pid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
+        try
+        {
+            inf.read((char*)test_buf, pkt_sz);
+            if(test_buf[0] != 0x47)
+                throw SyncErr();
 
-       /* std::list<PCR_Info*>::iterator pit;
-        for(pit = pcr_info_list.begin(); pit != pcr_info_list.end(); ++pit)
-        {
-            (*pit)->pkt_num++;
-        }
-*/
-        if(pid == 0x1FFF) //empty packet
-            continue;
+            uint16_t pid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
 
-        if(is_section_pkt(pid))
-        {
-            sf->sectionGather(pid, test_buf);
-        }
+            if(is_section_pkt(pid))
+            {
+                sf->sectionGather(pid, test_buf);
+            }
+            else
+            {
 
-        /*if(is_pcr_pkt(pid))
-        {
-        int64_t pcr = get_pcr(test_buf, pkt_sz);
-        if(pcr == -1)
-        continue;
-        std::list<PCR_Info*>::iterator pit;
-        bool ex = false;
-        for(pit = pcr_info_list.begin(); pit != pcr_info_list.end(); ++pit)
-        {
-        if((*pit)->PID == pid)
-        {
-        (*pit)->append(pcr);
-        ex = true;
-        break;
+            }
         }
-        }
-
-        if(!ex)
+        catch(SyncErr)
         {
-        PCR_Info* pi = new PCR_Info(pid);
-        pi->append(pcr);
-        pcr_info_list.push_back(pi);
+            ++ts_err.level1_err;
+            int idx = synchronous(pkt_sz);
+            if(idx == -1)
+            {
+                std::cout << "fatal error! can't find sync-byte, analysis will terminate..." << std::endl;
+                return ;
+            }
         }
-        }*/
     }
 }

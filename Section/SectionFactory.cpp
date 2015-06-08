@@ -200,7 +200,7 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
     if(pat != NULL)
     {
         std::list<PAT::ProgInfo*>::iterator pit;
-        for(pit = pat->prog_list.begin(); pit != pat->prog_list.end(); ++ pit)
+        for(pit = pat->prog_list.begin(); pit != pat->prog_list.end(); ++pit)
         {
             if((*pit)->program_number != 0 && type == (*pit)->program_map_PID)
             {

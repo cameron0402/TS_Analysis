@@ -36,7 +36,7 @@ class NIT : public Section
     NIT();
 
     //##ModelId=55558761023E
-    NIT(uint8_t* data, uint16_t len);
+    NIT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
     //##ModelId=555828A60271
     virtual ~NIT();
     virtual bool joinTo(SectionFactory* sf);

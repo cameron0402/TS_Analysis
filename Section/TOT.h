@@ -13,7 +13,7 @@ class TOT : public Section
     TOT();
 
     //##ModelId=55640EAC00FC
-    TOT(uint8_t* data, uint16_t len);
+    TOT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
 
     //##ModelId=55640EAF034C
     virtual ~TOT();

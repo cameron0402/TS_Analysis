@@ -41,7 +41,7 @@ SIT::SIT()
 }
 
 //##ModelId=556428CF03E6
-SIT::SIT(uint8_t* data, uint16_t len)
+SIT::SIT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       version_number((data[5] >> 1) & 0x1F),
       current_next_indicator(data[5] >> 7),

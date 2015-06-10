@@ -36,7 +36,7 @@ class SIT : public Section
     SIT();
 
     //##ModelId=556428CF03E6
-    SIT(uint8_t* data, uint16_t len);
+    SIT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
 
     //##ModelId=556428D30298
     virtual ~SIT();

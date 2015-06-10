@@ -9,11 +9,16 @@ TOT::TOT()
 }
 
 //##ModelId=55640EAC00FC
-TOT::TOT(uint8_t* data, uint16_t len)
+TOT::TOT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       descriptors_loop_length(((data[8] & 0xF) << 8) | data[9]),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
+    if(crc != 0xFFFFFFFF)
+    {
+        if(crc != crc32)
+            throw CrcErr(CrcErr::CTOT);
+    }
     memcpy(UTC_time, data + 3, 5);
 }
 

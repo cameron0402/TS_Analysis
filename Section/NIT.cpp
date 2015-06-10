@@ -9,7 +9,7 @@ NIT::NIT()
 }
 
 //##ModelId=55558761023E
-NIT::NIT(uint8_t* data, uint16_t len)
+NIT::NIT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       network_id((data[3] << 8) | data[4]), 
       version_number((data[5] >> 1) & 0x1F),
@@ -22,6 +22,11 @@ NIT::NIT(uint8_t* data, uint16_t len)
       streaminfo_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
+    if(crc != 0xFFFFFFFF)
+    {
+        if(crc != crc32)
+            throw CrcErr(CrcErr::CNIT);
+    }
 }
 
 //##ModelId=555828A60271
@@ -77,14 +82,6 @@ NIT::TransStreamInfo::~TransStreamInfo()
 
 bool NIT::joinTo(SectionFactory* sf)
 {
-    /*std::list<NIT*>::iterator nit;
-    for(nit = sf->nit_list.begin(); nit != sf->nit_list.end(); ++nit)
-    {
-    if(*(*nit) == *this)
-    return false;
-    }
-    sf->nit_list.push_back(this);
-    return true;*/
     std::pair<std::set<NIT*, cmp_secp<NIT>>::iterator, bool> ret;
     ret = sf->nit_list.insert(this);
     return ret.second;

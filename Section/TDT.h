@@ -10,7 +10,7 @@ class TDT : public Section
     TDT();
 
     //##ModelId=556406A801F1
-    TDT(uint8_t* data, uint16_t len);
+    TDT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
 
     //##ModelId=556406AC01FA
     virtual ~TDT();

@@ -42,7 +42,7 @@ BAT::BAT()
 }
 
 //##ModelId=55628C9103A7
-BAT::BAT(uint8_t* data, uint16_t len)
+BAT::BAT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       bouquet_id((data[3] << 8) | data[4]), 
       version_number((data[5] >> 1) & 0x1F),
@@ -55,6 +55,11 @@ BAT::BAT(uint8_t* data, uint16_t len)
       streaminfo_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
+    if(crc != 0xFFFFFFFF)
+    {
+        if(crc != crc32)
+            throw CrcErr(CrcErr::CBAT);
+    }
 }
 
 //##ModelId=55628C96028F

@@ -7,7 +7,7 @@ TDT::TDT()
 }
 
 //##ModelId=556406A801F1
-TDT::TDT(uint8_t* data, uint16_t len)
+TDT::TDT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       UTC_time()
 {

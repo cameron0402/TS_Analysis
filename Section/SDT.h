@@ -41,7 +41,7 @@ class SDT : public Section
     SDT();
 
     //##ModelId=5563CDCB02BF
-    SDT(uint8_t* data, uint16_t len);
+    SDT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
 
     //##ModelId=5563CE0800BB
     virtual ~SDT();

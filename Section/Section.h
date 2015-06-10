@@ -20,7 +20,7 @@ class Section
     Section();
 
     //##ModelId=5555A64603C5
-    Section(uint8_t* data, uint16_t len);
+    Section(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
 
     //##ModelId=5558283C00A1
     virtual ~Section();

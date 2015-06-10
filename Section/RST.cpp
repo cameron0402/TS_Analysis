@@ -26,7 +26,7 @@ RST::RST()
 }
 
 //##ModelId=556422E703BD
-RST::RST(uint8_t* data, uint16_t len)
+RST::RST(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len)
 {
     int index = 3;

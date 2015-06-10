@@ -11,7 +11,7 @@ class DIT : public Section
     DIT();
 
     //##ModelId=556428670050
-    DIT(uint8_t* data, uint16_t len);
+    DIT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
 
     //##ModelId=5564286A0230
     virtual ~DIT();

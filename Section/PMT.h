@@ -38,7 +38,7 @@ class PMT : public Section
     PMT();
 
     //##ModelId=55556B820369
-    PMT(uint8_t* data, uint16_t len);
+    PMT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
     //##ModelId=5558288B00A9
     virtual ~PMT();
 

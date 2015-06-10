@@ -7,8 +7,8 @@
 class SectionData
 {
   public:
-      enum {INVALID_CC = 0x10};
-      enum {MAX_SECTION_LENGTH = 4096};
+    enum {INVALID_CC = 0x10};
+    enum {MAX_SECTION_LENGTH = 4096};
     //##ModelId=555EC4060105
     SectionData();
 
@@ -17,6 +17,8 @@ class SectionData
 
     //##ModelId=555EC45001F6
     void Reset();
+
+    uint32_t get_crc();
 
     //##ModelId=555EBFD90065
     uint16_t PID;
@@ -30,6 +32,10 @@ class SectionData
     bool discontinuity_flag;
     //##ModelId=555EC32E0065
     uint16_t recv_length;
+
+    bool scrambling_flag;
+
+    uint32_t crc;
 };
 
 

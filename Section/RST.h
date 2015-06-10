@@ -36,7 +36,7 @@ class RST : public Section
     RST();
 
     //##ModelId=556422E703BD
-    RST(uint8_t* data, uint16_t len);
+    RST(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
 
     //##ModelId=556422EB02DF
     virtual ~RST();

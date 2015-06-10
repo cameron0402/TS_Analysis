@@ -11,7 +11,7 @@ class CAT : public Section
     CAT();
 
     //##ModelId=55558B3E03C8
-    CAT(uint8_t* data, uint16_t len);
+    CAT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
     //##ModelId=555828DD0014
     virtual ~CAT();
     virtual bool joinTo(SectionFactory* sf);

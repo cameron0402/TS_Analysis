@@ -9,7 +9,7 @@ SDT::SDT()
 }
 
 //##ModelId=5563CDCB02BF
-SDT::SDT(uint8_t* data, uint16_t len)
+SDT::SDT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       transport_stream_id((data[3] << 8) | data[4]), 
       version_number((data[5] >> 1) & 0x1F),
@@ -20,6 +20,11 @@ SDT::SDT(uint8_t* data, uint16_t len)
       service_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
+    if(crc != 0xFFFFFFFF)
+    {
+        if(crc != crc32)
+            throw CrcErr(CrcErr::CSDT);
+    }
 }
 
 //##ModelId=5563CE0800BB
@@ -108,14 +113,6 @@ bool SDT::operator<(const SDT& st)
 
 bool SDT::joinTo(SectionFactory* sf)
 {
-    /* std::list<SDT*>::iterator sit;
-    for(sit = sf->sdt_list.begin(); sit != sf->sdt_list.end(); ++sit)
-    {
-    if(*(*sit) == *this)
-    return false;
-    }
-    sf->sdt_list.push_back(this);
-    return true;*/
     std::pair<std::set<SDT*, cmp_secp<SDT>>::iterator, bool> ret;
     ret = sf->sdt_list.insert(this);
     return ret.second;

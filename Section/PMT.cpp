@@ -9,7 +9,7 @@ PMT::PMT()
 }
 
 //##ModelId=55556B820369
-PMT::PMT(uint8_t* data, uint16_t len)
+PMT::PMT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       program_number((data[3] << 8) | data[4]), 
       version_number((data[5] >> 1) & 0x1F),
@@ -22,6 +22,11 @@ PMT::PMT(uint8_t* data, uint16_t len)
       stream_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
+    if(crc != 0xFFFFFFFF)
+    {
+        if(crc != crc32)
+            throw CrcErr(CrcErr::CPMT);
+    }
 }
 
 //##ModelId=5558288B00A9
@@ -77,14 +82,6 @@ PMT::StreamInfo::~StreamInfo()
 
 bool PMT::joinTo(SectionFactory* sf)
 {
-    /*std::list<PMT*>::iterator pit;
-    for(pit = sf->pmt_list.begin(); pit != sf->pmt_list.end(); ++pit)
-    {
-    if(*(*pit) == *this)
-    return false;
-    }
-    sf->pmt_list.push_back(this);
-    return true;*/
     std::pair<std::set<PMT*, cmp_secp<PMT>>::iterator, bool> ret;
     ret = sf->pmt_list.insert(this);
     return ret.second;

@@ -33,7 +33,7 @@ class BAT : public Section
     //##ModelId=55628C8D03B6
     BAT();
     //##ModelId=55628C9103A7
-    BAT(uint8_t* data, uint16_t len);
+    BAT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
     //##ModelId=55628C96028F
     virtual ~BAT();
     virtual bool joinTo(SectionFactory* sf);

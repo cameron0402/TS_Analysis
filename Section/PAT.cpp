@@ -7,7 +7,7 @@ PAT::PAT()
 }
 
 //##ModelId=55555EC7002C
-PAT::PAT(uint8_t* data, uint16_t len) 
+PAT::PAT(uint8_t* data, uint16_t len, uint32_t crc) 
     : Section(data, len),
       transport_stream_id((data[3] << 8) | data[4]), 
       version_number((data[5] >> 1) & 0x1F),
@@ -17,6 +17,14 @@ PAT::PAT(uint8_t* data, uint16_t len)
       prog_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
+    if(table_id != 0x0)
+        throw PatErr(PatErr::PTID);
+
+    if(crc != 0xFFFFFFFF)
+    {
+        if(crc != crc32)
+            throw CrcErr(CrcErr::CPAT);
+    }
 }
 
 //##ModelId=55582871031A

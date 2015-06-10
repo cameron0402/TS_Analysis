@@ -192,17 +192,17 @@ int TSAnalysis::synchronous(int pkt_sz)
                 {
                     ++ts_err.sync_byte_err;
                     err->SetAttribute("type", "同步字节错误");
-                    err->SetAttribute("description", "TS同步字节不等于0x47");
+                    err->SetAttribute("desc", "TS同步字节不等于0x47");
                 }
                 else
                 {
                     ++ts_err.sync_loss_err;
                     err->SetAttribute("type", "同步丢失错误");
-                    err->SetAttribute("description", "TS同步字节0x47丢失");
+                    err->SetAttribute("desc", "TS同步字节0x47丢失");
                 }
 
                 err_xml->LinkEndChild(err);
-
+                
                 inf.seekg(idx - TS_MAX_PACKET_SIZE * 6, inf.cur);
 
                 return idx;
@@ -216,6 +216,7 @@ int TSAnalysis::synchronous(int pkt_sz)
 
 void TSAnalysis::ts_analysis()
 {
+    uint16_t pid;
     uint8_t test_buf[TS_MAX_PACKET_SIZE * 6] = {0};
     inf.read((char*)test_buf, TS_MAX_PACKET_SIZE * 6);
 
@@ -238,7 +239,7 @@ void TSAnalysis::ts_analysis()
             if(test_buf[0] != 0x47)
                 throw SyncErr();
 
-            uint16_t pid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
+            pid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
 
             if(is_section_pkt(pid))
             {
@@ -249,15 +250,220 @@ void TSAnalysis::ts_analysis()
 
             }
         }
-        catch(SyncErr)
+        catch(SyncErr&)
         {
-            ++ts_err.level1_err;
             int idx = synchronous(pkt_sz);
             if(idx == -1)
             {
                 std::cout << "fatal error! can't find sync-byte, analysis will terminate..." << std::endl;
                 return ;
             }
+            ++ts_err.level1_err;
+            ++ts_err.err;
         }
+        catch(PatErr& pe)
+        {
+            TiXmlElement* err = new TiXmlElement("err");
+            err->SetAttribute("num", ts_err.err);
+            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("pos", "");
+            err->SetAttribute("type", "PAT错误");
+            if(pe.type = PatErr::PTID)
+            {
+                err->SetAttribute("desc", "PID=0x0但table_id不等于0x0");
+                ++ts_err.pat_tid_err;
+            }
+            if(pe.type = PatErr::PINTV)
+            {
+                err->SetAttribute("desc", "PAT间隔大于0.5秒");
+                ++ts_err.pat_intv_err;
+            }
+            if(pe.type = PatErr::PSRB)
+            {
+                err->SetAttribute("desc", "PID=0的TS包加扰指示不等于0");
+                ++ts_err.pat_srb_err;
+            }       
+            err_xml->LinkEndChild(err);
+            ++ts_err.pat_err;
+            ++ts_err.level1_err;
+            ++ts_err.err;
+        }
+        catch(CCErr&)
+        {
+            char info[32] = {0};
+            sprintf(info, "PID = 0x%x", pid);
+            TiXmlElement* err = new TiXmlElement("err");
+            err->SetAttribute("num", ts_err.err);
+            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("pos", info);
+            err->SetAttribute("type", "连续计数错误");
+            err->SetAttribute("desc", "TS包连续计数错误");
+            err_xml->LinkEndChild(err);
+            ++ts_err.cc_err;
+            ++ts_err.level1_err;
+            ++ts_err.err;
+            ++ps[pid].cc_err_num;
+        }
+        catch(PmtErr& me)
+        {
+            TiXmlElement* err = new TiXmlElement("err");
+            err->SetAttribute("num", ts_err.err);
+            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("pos", "");
+            err->SetAttribute("type", "PMT错误");
+            if(me.type = PmtErr::PINTV)
+            {
+                err->SetAttribute("desc", "PMT间隔大于0.5秒");
+                ++ts_err.pmt_intv_err;
+            }
+            if(me.type = PmtErr::PSRB)
+            {
+                err->SetAttribute("desc", "PID=PMT_PID的TS包加扰指示不等于0");
+                ++ts_err.pmt_srb_err;
+            }
+            err_xml->LinkEndChild(err);
+            ++ts_err.pmt_err;
+            ++ts_err.level1_err;
+            ++ts_err.err;
+        }
+        catch(TransErr&)
+        {
+            TiXmlElement* err = new TiXmlElement("err");
+            err->SetAttribute("num", ts_err.err);
+            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("pos", "");
+            err->SetAttribute("type", "传输错误");
+            err->SetAttribute("desc", "TS包传输错误指示为1");
+            err_xml->LinkEndChild(err);
+            ++ts_err.trans_err;
+            ++ts_err.level2_err;
+            ++ts_err.err;
+        }
+        catch(CrcErr& ce)
+        {
+            TiXmlElement* err = new TiXmlElement("err");
+            err->SetAttribute("num", ts_err.err);
+            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("pos", "");
+            err->SetAttribute("type", "CRC错误");
+            if(ce.type == CrcErr::CPAT)
+            {
+                err->SetAttribute("desc", "PAT发生CRC错误");
+                ++ts_err.crc_pat_err;
+            }
+            if(ce.type == CrcErr::CPMT)
+            {
+                err->SetAttribute("desc", "PMT发生CRC错误");
+                ++ts_err.crc_pmt_err;
+            }
+            if(ce.type == CrcErr::CCAT)
+            {
+                err->SetAttribute("desc", "CAT发生CRC错误");
+                ++ts_err.crc_cat_err;
+            }
+            if(ce.type == CrcErr::CNIT)
+            {
+                err->SetAttribute("desc", "NIT发生CRC错误");
+                ++ts_err.crc_nit_err;
+            }
+            if(ce.type == CrcErr::CEIT)
+            {
+                err->SetAttribute("desc", "EIT发生CRC错误");
+                ++ts_err.crc_eit_err;
+            }
+            if(ce.type == CrcErr::CBAT)
+            {
+                err->SetAttribute("desc", "BAT发生CRC错误");
+                ++ts_err.crc_bat_err;
+            }
+            if(ce.type == CrcErr::CSDT)
+            {
+                err->SetAttribute("desc", "SDT发生CRC错误");
+                ++ts_err.crc_sdt_err;
+            }
+            if(ce.type == CrcErr::CTOT)
+            {
+                err->SetAttribute("desc", "TOT发生CRC错误");
+                ++ts_err.crc_tot_err;
+            }
+            err_xml->LinkEndChild(err);
+            ++ts_err.crc_err;
+            ++ts_err.level2_err;
+            ++ts_err.err;
+        }
+        catch(PcrIntvErr&)
+        {
+            TiXmlElement* err = new TiXmlElement("err");
+            err->SetAttribute("num", ts_err.err);
+            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("pos", "");
+            err->SetAttribute("type", "PCR间隔错误");
+            err->SetAttribute("desc", "PCR间隔大于40ms");
+            err_xml->LinkEndChild(err);
+            ++ts_err.pcr_intv_err;
+            ++ts_err.level2_err;
+            ++ts_err.err;
+        }
+        catch(PcrDisErr&)
+        {
+            TiXmlElement* err = new TiXmlElement("err");
+            err->SetAttribute("num", ts_err.err);
+            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("pos", "");
+            err->SetAttribute("type", "PCR不连续错误");
+            err->SetAttribute("desc", "未设置不连续标志且PCR间隔大于100ms");
+            err_xml->LinkEndChild(err);
+            ++ts_err.pcr_disc_err;
+            ++ts_err.level2_err;
+            ++ts_err.err;
+        }
+        catch(PcrAcuErr&)
+        {
+            TiXmlElement* err = new TiXmlElement("err");
+            err->SetAttribute("num", ts_err.err);
+            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("pos", "");
+            err->SetAttribute("type", "PCR精度错误");
+            err->SetAttribute("desc", "PCR精度超过正负500ns");
+            err_xml->LinkEndChild(err);
+            ++ts_err.pcr_acu_err;
+            ++ts_err.level2_err;
+            ++ts_err.err;
+        }
+        catch(PtsErr&)
+        {
+            TiXmlElement* err = new TiXmlElement("err");
+            err->SetAttribute("num", ts_err.err);
+            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("pos", "");
+            err->SetAttribute("type", "PCR精度错误");
+            err->SetAttribute("desc", "PCR精度超过正负500ns");
+            err_xml->LinkEndChild(err);
+            ++ts_err.pts_err;
+            ++ts_err.level2_err;
+            ++ts_err.err;
+        }
+        catch(CatErr& ae)
+        {
+            TiXmlElement* err = new TiXmlElement("err");
+            err->SetAttribute("num", ts_err.err);
+            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("pos", "");
+            err->SetAttribute("type", "CAT错误");
+            if(ae.type == CatErr::CSRB)
+            {
+                err->SetAttribute("desc", "传输流中未出现CAT却存在加扰标志不为0的TS包");
+                ++ts_err.cat_srb_err;
+            }
+            if(ae.type == CatErr::CTID)
+            {
+                err->SetAttribute("desc", "PID=0x1但table_id不等于0x1");
+                ++ts_err.cat_tid_err;
+            }
+            err_xml->LinkEndChild(err);
+            ++ts_err.level2_err;
+            ++ts_err.err;
+        }
+       
     }
 }

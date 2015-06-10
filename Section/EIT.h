@@ -42,7 +42,7 @@ class EIT : public Section
     EIT();
 
     //##ModelId=5563DB260334
-    EIT(uint8_t* data, uint16_t len);
+    EIT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
 
     //##ModelId=5563DB2B0060
     virtual ~EIT();

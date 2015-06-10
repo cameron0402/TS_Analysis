@@ -32,7 +32,7 @@ class PAT : public Section
     PAT();
 
     //##ModelId=55555EC7002C
-    PAT(uint8_t* data, uint16_t len);
+    PAT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
     //##ModelId=55582871031A
     virtual ~PAT();
     virtual bool joinTo(SectionFactory* sf);

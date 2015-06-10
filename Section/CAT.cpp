@@ -9,7 +9,7 @@ CAT::CAT()
 }
 
 //##ModelId=55558B3E03C8
-CAT::CAT(uint8_t* data, uint16_t len) 
+CAT::CAT(uint8_t* data, uint16_t len, uint32_t crc) 
     : Section(data, len),
       version_number((data[5] >> 1) & 0x1F),
       current_next_indicator(data[5] >> 7),
@@ -18,6 +18,14 @@ CAT::CAT(uint8_t* data, uint16_t len)
       desc_list(),
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
+    if(table_id != 0x1)
+        throw CatErr(CatErr::CTID);
+
+    if(crc != 0xFFFFFFFF)
+    {
+        if(crc != crc32)
+            throw CrcErr(CrcErr::CCAT);
+    }
 }
 
 CAT::~CAT()
@@ -33,15 +41,6 @@ CAT::~CAT()
 
 bool CAT::joinTo(SectionFactory* sf)
 {
-    /*std::list<CAT*>::iterator cit;
-    for(cit = sf->cat_list.begin(); cit != sf->cat_list.end(); ++cit)
-    {
-    if(*(*cit) == *this)
-    return false;
-    }
-    sf->cat_list.push_back(this);
-    return true;*/
-
     std::pair<std::set<CAT*, cmp_secp<CAT>>::iterator, bool> ret;
     ret = sf->cat_list.insert(this);
     return ret.second;

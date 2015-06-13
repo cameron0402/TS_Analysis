@@ -7,7 +7,11 @@ class PES
 {
 public:
     PES();
+    PES(uint32_t raw_len);
     ~PES();
+
+    void Reset();
+    void getDetail();
 
     uint32_t packet_start_code_prefix; //24 bit
     uint8_t stream_id; // 8 bit
@@ -33,8 +37,8 @@ public:
     uint64_t DTS; // 33 bit
 
     //ESCR_flag == true
-    uint64_t ECR_base; // 33 bit
-    uint16_t ECR_extension; //9 bit
+    uint64_t ESCR_base; // 33 bit
+    uint16_t ESCR_extension; //9 bit
 
     //ES_rate_flag == true
     uint32_t ES_rate; // 22 bit
@@ -81,6 +85,9 @@ public:
 
     uint8_t* PES_packet_data;
 
+    uint8_t* raw_data;
+    uint32_t raw_pes_length;
+    uint32_t recv_length;
 };
 
 #endif

@@ -8,6 +8,7 @@ class AdaptationField
 public:
 
     AdaptationField();
+    AdaptationField(uint8_t* data);
     ~AdaptationField();
 
     uint8_t adaptation_field_length;  //8 bit
@@ -34,7 +35,7 @@ public:
     
     //transport_private_data_flag == true
     uint8_t transport_private_data_length; //8 bit
-    uint8_t* transport_private_data;
+    //uint8_t* transport_private_data;
 
     //adaptation_field_extension_flag == 1
     uint8_t adaptation_field_extension_length; //8 bit

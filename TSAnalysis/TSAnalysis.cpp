@@ -241,7 +241,11 @@ void TSAnalysis::ts_analysis()
 
             pid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
 
-            if(is_section_pkt(pid))
+            if(pid = 0x1FFFF)
+            {
+
+            }
+            else if(is_section_pkt(pid))
             {
                 sf->sectionGather(pid, test_buf);
             }

@@ -1,7 +1,7 @@
 #include "SDT.h"
 #include "SectionFactory.h"
 #include "../Descriptor/Descriptor.h"
-#include "../Descriptor/DescFactory.h"
+#include "../Descriptor/DVBDesc/DescFactory.h"
 
 //##ModelId=5563CDBD00BF
 SDT::SDT()

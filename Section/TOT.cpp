@@ -1,7 +1,7 @@
 #include "TOT.h"
 #include "SectionFactory.h"
 #include "../Descriptor/Descriptor.h"
-#include "../Descriptor/DescFactory.h"
+#include "../Descriptor/DVBDesc/DescFactory.h"
 
 //##ModelId=55640EA801B6
 TOT::TOT()

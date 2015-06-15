@@ -1,7 +1,7 @@
 #include "CAT.h"
 #include "SectionFactory.h"
 #include "../Descriptor/Descriptor.h"
-#include "../Descriptor/DescFactory.h"
+#include "../Descriptor/DVBDesc/DescFactory.h"
 
 //##ModelId=55558B3703CA
 CAT::CAT()

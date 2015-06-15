@@ -1,7 +1,7 @@
 #include "EIT.h"
 #include "SectionFactory.h"
 #include "../Descriptor/Descriptor.h"
-#include "../Descriptor/DescFactory.h"
+#include "../Descriptor/DVBDesc/DescFactory.h"
 
 //##ModelId=5563DC4003BF
 EIT::EventInfo::EventInfo()

@@ -1,7 +1,7 @@
 #include "PMT.h"
 #include "SectionFactory.h"
-#include "../Descriptor/DescFactory.h"
 #include "../Descriptor/Descriptor.h"
+#include "../Descriptor/DVBDesc/DescFactory.h"
 
 //##ModelId=55556B720001
 PMT::PMT()

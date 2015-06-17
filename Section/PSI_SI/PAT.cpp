@@ -1,5 +1,5 @@
 #include "PAT.h"
-#include "SectionFactory.h"
+#include "../SectionFactory.h"
 
 //##ModelId=55555EB90262
 PAT::PAT()

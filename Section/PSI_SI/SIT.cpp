@@ -1,6 +1,6 @@
 #include "SIT.h"
-#include "../Descriptor/Descriptor.h"
-#include "../Descriptor/DVBDesc/DescFactory.h"
+#include "../../Descriptor/Descriptor.h"
+#include "../../Descriptor/DVB/DescFactory.h"
 
 //##ModelId=556429E100BC
 SIT::ServiceInfo::ServiceInfo()

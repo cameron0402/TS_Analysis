@@ -1,7 +1,7 @@
 #ifndef SIT_H_HEADER_INCLUDED_AA9AB17A
 #define SIT_H_HEADER_INCLUDED_AA9AB17A
 
-#include "Section.h"
+#include "../Section.h"
 
 class Descriptor;
 

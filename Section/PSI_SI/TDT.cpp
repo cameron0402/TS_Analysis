@@ -1,5 +1,5 @@
 #include "TDT.h"
-#include "SectionFactory.h"
+#include "../SectionFactory.h"
 
 //##ModelId=556406A303DC
 TDT::TDT()

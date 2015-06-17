@@ -1,7 +1,7 @@
 #ifndef SDT_H_HEADER_INCLUDED_AA9C3B80
 #define SDT_H_HEADER_INCLUDED_AA9C3B80
 
-#include "Section.h"
+#include "../Section.h"
 
 class Descriptor;
 

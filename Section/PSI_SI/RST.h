@@ -1,7 +1,7 @@
 #ifndef RST_H_HEADER_INCLUDED_AA9BBED5
 #define RST_H_HEADER_INCLUDED_AA9BBED5
 
-#include "Section.h"
+#include "../Section.h"
 
 //##ModelId=556422D30241
 class RST : public Section

@@ -1,7 +1,7 @@
 #ifndef TOT_H_HEADER_INCLUDED_AA9BEC2E
 #define TOT_H_HEADER_INCLUDED_AA9BEC2E
 
-#include "Section.h"
+#include "../Section.h"
 
 class Descriptor;
 

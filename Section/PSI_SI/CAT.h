@@ -1,6 +1,6 @@
 #ifndef CAT_H_HEADER_INCLUDED_AAAA6611
 #define CAT_H_HEADER_INCLUDED_AAAA6611
-#include "Section.h"
+#include "../Section.h"
 class Descriptor;
 
 //##ModelId=555589B50379

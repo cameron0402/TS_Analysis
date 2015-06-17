@@ -1,7 +1,7 @@
 #ifndef EIT_H_HEADER_INCLUDED_AA9C5834
 #define EIT_H_HEADER_INCLUDED_AA9C5834
 
-#include "Section.h"
+#include "../Section.h"
 
 class Descriptor;
 

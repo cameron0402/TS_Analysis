@@ -1,7 +1,7 @@
 #ifndef DIT_H_HEADER_INCLUDED_AA9A9390
 #define DIT_H_HEADER_INCLUDED_AA9A9390
 
-#include "Section.h"
+#include "../Section.h"
 
 //##ModelId=556428200350
 class DIT : public Section

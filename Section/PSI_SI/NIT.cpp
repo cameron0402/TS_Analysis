@@ -1,7 +1,7 @@
 #include "NIT.h"
-#include "SectionFactory.h"
-#include "../Descriptor/Descriptor.h"
-#include "../Descriptor/DVBDesc/DescFactory.h"
+#include "../SectionFactory.h"
+#include "../../Descriptor/Descriptor.h"
+#include "../../Descriptor/DVB/DescFactory.h"
 
 //##ModelId=5555875B00F0
 NIT::NIT()

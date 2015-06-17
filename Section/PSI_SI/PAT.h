@@ -1,6 +1,6 @@
 #ifndef PAT_H_HEADER_INCLUDED_AAAA7CE5
 #define PAT_H_HEADER_INCLUDED_AAAA7CE5
-#include "Section.h"
+#include "../Section.h"
 
 //##ModelId=55555D8302B9
 class PAT : public Section

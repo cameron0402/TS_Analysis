@@ -1,6 +1,6 @@
 #ifndef BAT_H_HEADER_INCLUDED_AA9D2706
 #define BAT_H_HEADER_INCLUDED_AA9D2706
-#include "Section.h"
+#include "../Section.h"
 class Descriptor;
 
 //##ModelId=55628C830124

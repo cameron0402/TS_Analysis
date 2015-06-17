@@ -1,6 +1,6 @@
 #ifndef NIT_H_HEADER_INCLUDED_AAAA2DF4
 #define NIT_H_HEADER_INCLUDED_AAAA2DF4
-#include "Section.h"
+#include "../Section.h"
 class Descriptor;
 
 //##ModelId=555584E1029F

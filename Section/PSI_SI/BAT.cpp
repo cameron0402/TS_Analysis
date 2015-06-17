@@ -1,7 +1,7 @@
 #include "BAT.h"
-#include "SectionFactory.h"
-#include "../Descriptor/Descriptor.h"
-#include "../Descriptor/DVBDesc/DescFactory.h"
+#include "../SectionFactory.h"
+#include "../../Descriptor/Descriptor.h"
+#include "../../Descriptor/DVB/DescFactory.h"
 
 //##ModelId=55628F4000F1
 BAT::TransStreamInfo::TransStreamInfo()

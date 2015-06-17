@@ -1,6 +1,6 @@
 #include "TSAnalysis.h"
-#include "../Section/PAT.h"
-#include "../Section/PMT.h"
+#include "../Section/PSI_SI/PAT.h"
+#include "../Section/PSI_SI/PMT.h"
 
 char* section_desc[] = 
 {

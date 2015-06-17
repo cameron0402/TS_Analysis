@@ -1,7 +1,7 @@
 #ifndef TDT_H_HEADER_INCLUDED_AA9BB1E6
 #define TDT_H_HEADER_INCLUDED_AA9BB1E6
 
-#include "Section.h"
+#include "../Section.h"
 //##ModelId=5564068F015D
 class TDT : public Section
 {

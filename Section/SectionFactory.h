@@ -2,15 +2,15 @@
 #define SECTIONFACTORY_H_HEADER_INCLUDED_AAAA5AA3
 
 #include "../def.h"
-#include "BAT.h"
-#include "CAT.h"
-#include "EIT.h"
-#include "NIT.h"
-#include "PAT.h"
-#include "PMT.h"
-#include "SDT.h"
-#include "TDT.h"
-#include "TOT.h"
+#include "PSI_SI/BAT.h"
+#include "PSI_SI/CAT.h"
+#include "PSI_SI/EIT.h"
+#include "PSI_SI/NIT.h"
+#include "PSI_SI/PAT.h"
+#include "PSI_SI/PMT.h"
+#include "PSI_SI/SDT.h"
+#include "PSI_SI/TDT.h"
+#include "PSI_SI/TOT.h"
 
 class SectionData;
 
@@ -46,14 +46,12 @@ class SectionFactory
 
     std::set<SDT*, cmp_secp<SDT>> sdt_list;
 
-    //std::list<EIT*> eit_list;
     std::set<EIT*, cmp_secp<EIT>> eit_list;
 
     TDT* tdt;
 
     TOT* tot;
-  
-    //##ModelId=555EC50E007F
+
     SectionData* raw_sarr[MAX_PID_NUM];
   private:
     //##ModelId=555597630041

@@ -37,7 +37,7 @@ class PAT : public Section
     virtual ~PAT();
     virtual bool joinTo(SectionFactory* sf);
     virtual void resolved();
-    virtual void getDetail(uint8_t* data, uint16_t len);
+    virtual void getDetail();
 
     bool operator ==(const PAT& pt);
 

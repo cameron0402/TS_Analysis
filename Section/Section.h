@@ -14,7 +14,7 @@ class Section
     //##ModelId=555561E1025F
     virtual void resolved();
 
-    virtual void getDetail(uint8_t* data, uint16_t len);
+    virtual void getDetail();
 
     //##ModelId=5555A63E015D
     Section();
@@ -34,20 +34,10 @@ class Section
     //##ModelId=555552030016
     uint16_t length;
 
+    uint8_t* raw_data;
     //for resolved
     TiXmlElement* xml;
 
 };
-
-template<class T>
-struct cmp_secp
-{
-    bool operator()(T* secp1, T* secp2) const 
-    {
-        return (*secp1) < (*secp2);
-    }
-};
-
-
 
 #endif /* SECTION_H_HEADER_INCLUDED_AA9D5029 */

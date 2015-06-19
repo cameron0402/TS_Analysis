@@ -86,7 +86,7 @@ public:
 private:
     int analyze(const uint8_t *buf, int size, int packet_size, int *index); 
     int get_packet_size(const uint8_t *buf, int size, int* index); // get the packet size and find the start position
-    bool is_section_pkt(uint16_t pid);
+    //bool is_section_pkt(uint16_t pid);
 
     int synchronous(int pkt_sz); //when sync_err occurs, this function to find the sync byte again
 

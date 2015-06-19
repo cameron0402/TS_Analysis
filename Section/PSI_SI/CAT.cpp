@@ -43,16 +43,18 @@ bool CAT::joinTo(SectionFactory* sf)
 {
     std::pair<std::set<CAT*, cmp_secp<CAT>>::iterator, bool> ret;
     ret = sf->cat_list.insert(this);
+    if(ret.second)
+        this->getDetail();
     return ret.second;
 }
 
-void CAT::getDetail(uint8_t* data, uint16_t len)
+void CAT::getDetail()
 {
     int index = 8;
     DescFactory des_fac;
-    while(index < len - 4)
+    while(index < length - 1)
     {
-        Descriptor* des = des_fac.createDesc(data[index], data + index);
+        Descriptor* des = des_fac.createDesc(raw_data[index], raw_data + index);
         index += des->length + 2;
         desc_list.push_back(des);
     }

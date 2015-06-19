@@ -149,24 +149,24 @@ int TSAnalysis::get_packet_size(const uint8_t* buf, int size, int* index = NULL)
     return -1;
 }
 
-bool TSAnalysis::is_section_pkt(uint16_t pid)
-{
-    if(!pmt_set)
-    {
-        if(sf->pat != NULL)
-        {
-            std::list<PAT::ProgInfo*>::iterator pit;
-            for(pit = sf->pat->prog_list.begin(); pit != sf->pat->prog_list.end(); pit++)
-            {
-                ps[(*pit)->program_map_PID].type = SECTION; 
-                ps[(*pit)->program_map_PID].description = section_desc[0x20];
-            }
-            pmt_set = true;
-        }
-    }
-   
-    return ps[pid].type == SECTION;   
-}
+//bool TSAnalysis::is_section_pkt(uint16_t pid)
+//{
+//    if(!pmt_set)
+//    {
+//        if(sf->pat != NULL)
+//        {
+//            std::list<PAT::ProgInfo*>::iterator pit;
+//            for(pit = sf->pat->prog_list.begin(); pit != sf->pat->prog_list.end(); pit++)
+//            {
+//                ps[(*pit)->program_map_PID].type = SECTION; 
+//                ps[(*pit)->program_map_PID].description = section_desc[0x20];
+//            }
+//            pmt_set = true;
+//        }
+//    }
+//   
+//    return ps[pid].type == SECTION;   
+//}
 
 int TSAnalysis::synchronous(int pkt_sz)
 {
@@ -241,17 +241,13 @@ void TSAnalysis::ts_analysis()
 
             pid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
 
-            if(pid = 0x1FFFF)
+            if(pid == 0x1FFFF)
             {
 
-            }
-            else if(is_section_pkt(pid))
-            {
-                sf->sectionGather(pid, test_buf);
             }
             else
             {
-
+                sf->sectionGather(pid, test_buf);
             }
         }
         catch(SyncErr&)

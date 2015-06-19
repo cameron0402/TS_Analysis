@@ -84,13 +84,15 @@ bool NIT::joinTo(SectionFactory* sf)
 {
     std::pair<std::set<NIT*, cmp_secp<NIT>>::iterator, bool> ret;
     ret = sf->nit_list.insert(this);
+    if(ret.second)
+        this->getDetail();
     return ret.second;
 }
 
-void NIT::getDetail(uint8_t* data, uint16_t len)
+void NIT::getDetail()
 {
     int index = 0;
-    uint8_t* sub_data = data + 10;
+    uint8_t* sub_data = raw_data + 10;
     DescFactory des_fac;
     while(index < network_descriptors_length)
     {
@@ -100,7 +102,7 @@ void NIT::getDetail(uint8_t* data, uint16_t len)
     }
 
     index = 0;
-    sub_data = data + 12 + network_descriptors_length;
+    sub_data = raw_data + 12 + network_descriptors_length;
     while(index < transport_stream_loop_length)
     {
         TransStreamInfo* tsi = new TransStreamInfo(sub_data + index);

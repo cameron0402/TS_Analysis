@@ -51,7 +51,7 @@ class SDT : public Section
     bool operator <(const SDT& st);
 
     virtual void resolved();
-    virtual void getDetail(uint8_t* data, uint16_t len);
+    virtual void getDetail();
 
     //##ModelId=5563CBB70111
     uint16_t transport_stream_id;

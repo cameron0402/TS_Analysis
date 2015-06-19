@@ -41,7 +41,7 @@ class NIT : public Section
     virtual ~NIT();
     virtual bool joinTo(SectionFactory* sf);
     virtual void resolved();
-    virtual void getDetail(uint8_t* data, uint16_t len);
+    virtual void getDetail();
     bool operator ==(const NIT& nt);
     bool operator <(const NIT& nt);
     //##ModelId=5562978900BC

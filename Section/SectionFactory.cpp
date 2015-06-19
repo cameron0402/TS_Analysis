@@ -20,7 +20,8 @@ void SectionFactory::sectionGather(int pid, uint8_t* ts_packet)
 
     if(raw_sarr[pid] == NULL)
     {
-        raw_sarr[pid] = new SectionData();
+        return ;
+        //raw_sarr[pid] = new SectionData();
     }
 
     SectionData* raw_section = raw_sarr[pid];
@@ -145,10 +146,6 @@ void SectionFactory::sectionGather(int pid, uint8_t* ts_packet)
                 {
                     delete sec;
                 }   
-                else
-                {
-                    sec->getDetail(raw_section->section_data, raw_section->section_data_length);
-                }
             }
             
             raw_section->Reset();
@@ -264,6 +261,11 @@ SectionFactory::SectionFactory()
       tot(NULL),
       raw_sarr()
 {
+    int i;
+    for(i = 0; i < 0x1F; ++i)
+    {
+        raw_sarr[i] = new SectionData();
+    }
 }
 
 SectionFactory::~SectionFactory()

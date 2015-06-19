@@ -13,6 +13,8 @@ Section::Section(uint8_t* data, uint16_t len, uint32_t crc)
       length((data[1] & 0x0F) << 8 | data[2]),
       xml(NULL)
 {
+    raw_data = new uint8_t[len];
+    memcpy(raw_data, data, len);
 }
 
 Section::~Section()
@@ -22,6 +24,9 @@ Section::~Section()
         delete xml;
         xml = NULL;
     }
+
+    if(raw_data != NULL)
+        delete []raw_data;
 }
 
 //##ModelId=5555540B00A0
@@ -30,7 +35,7 @@ bool Section::joinTo(SectionFactory* sf)
     return false;
 }
 
-void Section::getDetail(uint8_t* data, uint16_t len)
+void Section::getDetail()
 {
 
 }

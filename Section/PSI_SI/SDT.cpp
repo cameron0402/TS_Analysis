@@ -115,15 +115,17 @@ bool SDT::joinTo(SectionFactory* sf)
 {
     std::pair<std::set<SDT*, cmp_secp<SDT>>::iterator, bool> ret;
     ret = sf->sdt_list.insert(this);
+    if(ret.second)
+        this->getDetail();
     return ret.second;
 }
 
-void SDT::getDetail(uint8_t* data, uint16_t len)
+void SDT::getDetail()
 {
     int index = 11;
-    while(index < len - 4)
+    while(index < length - 1)
     {
-        ServiceInfo* si = new ServiceInfo(data + index);
+        ServiceInfo* si = new ServiceInfo(raw_data + index);
         service_list.push_back(si);
         index += 5 + si->descriptors_loop_length;
     }

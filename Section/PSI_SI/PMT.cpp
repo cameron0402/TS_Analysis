@@ -1,5 +1,6 @@
 #include "PMT.h"
 #include "../SectionFactory.h"
+#include "../SectionData.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
@@ -84,6 +85,19 @@ bool PMT::joinTo(SectionFactory* sf)
 {
     std::pair<std::set<PMT*, cmp_secp<PMT>>::iterator, bool> ret;
     ret = sf->pmt_list.insert(this);
+
+    if(ret.second)
+        this->getDetail();
+
+    std::list<StreamInfo*>::iterator sit;
+    for(sit = stream_list.begin(); sit != stream_list.end(); ++sit)
+    {
+        if((*sit)->type == 0x0B)
+        {
+            sf->raw_sarr[(*sit)->elem_PID] = new SectionData();
+        }
+    }
+
     return ret.second;
 }
 
@@ -111,10 +125,10 @@ bool PMT::operator<(const PMT& pt)
     return false;
 }
 
-void PMT::getDetail(uint8_t* data, uint16_t len)
+void PMT::getDetail()
 {
     int index = 0;
-    uint8_t* pd = data + 12;
+    uint8_t* pd = raw_data + 12;
     DescFactory des_fac;
     while(index < program_info_length)
     {
@@ -124,9 +138,9 @@ void PMT::getDetail(uint8_t* data, uint16_t len)
     }
 
     index = 12 + program_info_length;
-    while(index < len - 4)
+    while(index < length - 1)
     {
-        StreamInfo* si = new StreamInfo(data + index);
+        StreamInfo* si = new StreamInfo(raw_data + index);
         index += si->info_length + 5;
         stream_list.push_back(si);
     }

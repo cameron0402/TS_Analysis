@@ -118,12 +118,12 @@ bool EIT::operator<(const EIT& et)
     return false;
 }
 
-void EIT::getDetail(uint8_t* data, uint16_t len)
+void EIT::getDetail()
 {
     int index = 14;
-    while(index < len - 4)
+    while(index < length - 1)
     {
-        EventInfo* ei = new EventInfo(data + index);
+        EventInfo* ei = new EventInfo(raw_data + index);
         event_list.push_back(ei);
         index += 12 + ei->descriptors_loop_length;
     }
@@ -133,7 +133,8 @@ bool EIT::joinTo(SectionFactory* sf)
 {
     std::pair<std::set<EIT*, cmp_secp<EIT>>::iterator, bool> ret;
     ret = sf->eit_list.insert(this);
-
+    if(ret.second)
+        this->getDetail();
     return ret.second;
 }
 

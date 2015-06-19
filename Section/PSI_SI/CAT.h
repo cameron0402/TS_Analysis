@@ -16,7 +16,7 @@ class CAT : public Section
     virtual ~CAT();
     virtual bool joinTo(SectionFactory* sf);
     virtual void resolved();
-    virtual void getDetail(uint8_t* data, uint16_t len);
+    virtual void getDetail();
     bool operator ==(const CAT& ct);
     bool operator <(const CAT& ct);
 

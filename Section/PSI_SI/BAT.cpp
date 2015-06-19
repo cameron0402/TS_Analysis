@@ -93,14 +93,15 @@ bool BAT::joinTo(SectionFactory* sf)
         if(*(*bit) == *this)
             return false;
     }
+    this->getDetail();
     sf->bat_list.push_back(this);
     return true;
 }
 
-void BAT::getDetail(uint8_t* data, uint16_t len)
+void BAT::getDetail()
 {
     int index = 0;
-    uint8_t* sub_data = data + 10;
+    uint8_t* sub_data = raw_data + 10;
     DescFactory des_fac;
     while(index < bouquet_descriptors_length)
     {
@@ -110,10 +111,10 @@ void BAT::getDetail(uint8_t* data, uint16_t len)
     }
 
     index = 0;
-    sub_data = data + 12 + bouquet_descriptors_length;
+    sub_data = raw_data + 12 + bouquet_descriptors_length;
     while(index < transport_stream_loop_length)
     {
-        TransStreamInfo* tsi = new TransStreamInfo(data + index);
+        TransStreamInfo* tsi = new TransStreamInfo(raw_data + index);
         index += 4 + tsi->transport_descriptors_length;
         streaminfo_list.push_back(tsi);
     }

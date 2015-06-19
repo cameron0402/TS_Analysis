@@ -1,5 +1,6 @@
 #include "PAT.h"
 #include "../SectionFactory.h"
+#include "../SectionData.h"
 
 //##ModelId=55555EB90262
 PAT::PAT()
@@ -55,12 +56,12 @@ PAT::ProgInfo::~ProgInfo()
 {
 }
 
-void PAT::getDetail(uint8_t* data, uint16_t len)
+void PAT::getDetail()
 {
     int index = 8;
-    while(index < len - 4)
+    while(index < length - 4)
     {
-        ProgInfo* pi = new ProgInfo(data + index);
+        ProgInfo* pi = new ProgInfo(raw_data + index);
         prog_list.push_back(pi);
         index += 4;
     }
@@ -70,6 +71,12 @@ bool PAT::joinTo(SectionFactory* sf)
 {
     if(sf->pat == NULL)
     {
+        this->getDetail();
+        std::list<ProgInfo*>::iterator pit;
+        for(pit = prog_list.begin(); pit != prog_list.end(); ++pit)
+        {
+            sf->raw_sarr[(*pit)->program_map_PID] = new SectionData();
+        }
         sf->pat = this;
         return true;
     }

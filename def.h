@@ -36,4 +36,14 @@ void utc_to_hms(uint8_t* utc, char* str);
 //deal with the code translation
 int coding_string_to_gb(uint8_t *p, uint8_t* buf_gb, int len);
 
+
+template<class T>
+struct cmp_secp
+{
+    bool operator()(T* secp1, T* secp2) const 
+    {
+        return (*secp1) < (*secp2);
+    }
+};
+
 #endif

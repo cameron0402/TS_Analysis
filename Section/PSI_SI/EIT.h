@@ -52,7 +52,7 @@ class EIT : public Section
     bool operator <(const EIT& et);
 
     virtual void resolved();
-    virtual void getDetail(uint8_t* data, uint16_t len);
+    virtual void getDetail();
 
 
     //##ModelId=5563DB5E002F

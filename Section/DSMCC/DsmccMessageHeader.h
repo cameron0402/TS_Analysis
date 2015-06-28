@@ -17,6 +17,9 @@ public:
     uint32_t transactionId; //downloadID
     uint8_t adaptation_length;
     uint16_t message_length;
+
+    bool operator<(const DsmccMessageHeader& dsmh);
+    bool operator==(const DsmccMessageHeader& dsmh);
     //adaptation_header ingored
 };
 

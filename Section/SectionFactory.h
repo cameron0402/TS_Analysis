@@ -11,6 +11,7 @@
 #include "PSI_SI/SDT.h"
 #include "PSI_SI/TDT.h"
 #include "PSI_SI/TOT.h"
+#include "DSMCC/DsmccSection.h"   
 
 class SectionData;
 
@@ -47,6 +48,8 @@ class SectionFactory
     std::set<SDT*, cmp_secp<SDT>> sdt_list;
 
     std::set<EIT*, cmp_secp<EIT>> eit_list;
+
+    std::list<ESGInfo*> esg_list;
 
     TDT* tdt;
 

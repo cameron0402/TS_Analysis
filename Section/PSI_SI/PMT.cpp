@@ -1,6 +1,7 @@
 #include "PMT.h"
 #include "../SectionFactory.h"
 #include "../SectionData.h"
+#include "../DSMCC/DsmccSection.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
@@ -85,18 +86,37 @@ bool PMT::joinTo(SectionFactory* sf)
 {
     std::pair<std::set<PMT*, cmp_secp<PMT>>::iterator, bool> ret;
     ret = sf->pmt_list.insert(this);
+    ESGInfo* ei = NULL;
 
     if(ret.second)
+    {
         this->getDetail();
 
-    std::list<StreamInfo*>::iterator sit;
-    for(sit = stream_list.begin(); sit != stream_list.end(); ++sit)
-    {
-        if((*sit)->type == 0x0B)
+        std::list<StreamInfo*>::iterator sit;
+        for(sit = stream_list.begin(); sit != stream_list.end(); ++sit)
         {
-            sf->raw_sarr[(*sit)->elem_PID] = new SectionData();
+            if((*sit)->type == 0x0B)
+            {
+                if(sf->raw_sarr[(*sit)->elem_PID] != NULL)
+                {
+                    delete sf->raw_sarr[(*sit)->elem_PID];
+                    sf->raw_sarr[(*sit)->elem_PID] = NULL;
+                }
+                sf->raw_sarr[(*sit)->elem_PID] = new SectionData();
+
+                if(ei == NULL)
+                {
+                    ei = new ESGInfo(program_number);
+                }
+
+                if(ei != NULL)
+                    ei->pid_list.push_back((*sit)->elem_PID);
+            }
         }
     }
+
+    if(ei != NULL)
+        sf->esg_list.push_back(ei);
 
     return ret.second;
 }

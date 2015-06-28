@@ -55,7 +55,7 @@ public:
         uint16_t block_size;
         uint16_t block_sum;
         uint8_t* block_map;
-        uint16_t block_recv;
+
         uint32_t recv_length;
         bool recv_completed;
 
@@ -71,6 +71,9 @@ public:
     DII();
     DII(uint8_t* data);
     virtual ~DII();
+
+    bool operator<(const DII& dii);
+    bool operator==(const DII& dii);
 
     DsmccMessageHeader* dsmh;
     uint32_t downloadID;

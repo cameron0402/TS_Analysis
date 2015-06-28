@@ -20,3 +20,14 @@ DsmccMessageHeader::~DsmccMessageHeader()
 {
 
 }
+
+bool DsmccMessageHeader::operator<(const DsmccMessageHeader& dsmh)
+{
+    return transactionId < dsmh.transactionId;
+}
+
+bool DsmccMessageHeader::operator==(const DsmccMessageHeader& dsmh)
+{
+    return transactionId == dsmh.transactionId &&
+           message_length == dsmh.message_length;
+}

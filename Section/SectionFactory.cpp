@@ -234,6 +234,24 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
             }
         }
     }
+
+    if(!esg_list.empty())
+    {
+        std::list<ESGInfo*>::iterator eit;
+        for(eit = esg_list.begin(); eit != esg_list.end(); ++eit)
+        {
+            std::list<uint16_t>::iterator uit;
+            for(uit = (*eit)->pid_list.begin(); uit != (*eit)->pid_list.end(); ++uit)
+            {
+                if(type == *uit)
+                {
+                    DsmccSection* ds = new DsmccSection(data, len, crc);
+                    ds->belong = (*eit);
+                    return ds;
+                }
+            }
+        }
+    }
     
     return NULL;
 }
@@ -320,6 +338,13 @@ SectionFactory::~SectionFactory()
 
     if(tot != NULL)
         delete tot;
+
+    std::list<ESGInfo*>::iterator esit;
+    for(esit = esg_list.begin(); esit != esg_list.end(); ++esit)
+    {
+        delete (*esit);
+    }
+    esg_list.clear();
 
     for(int i = 0; i < MAX_PID_NUM; ++i)
     {

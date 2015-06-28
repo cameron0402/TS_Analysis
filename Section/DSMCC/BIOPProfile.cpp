@@ -139,7 +139,7 @@ BIOPProfile::BIOPProfile(uint8_t* data)
     if(idx < profile_data_length + 4)
     {
         biop_objloc = new BIOP_ObjectLocation(data + idx);
-        idx += biop_objloc->component_data_length + 4;
+        idx += biop_objloc->component_data_length + 5;
     }
 
     if(idx < profile_data_length + 4)

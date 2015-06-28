@@ -12,7 +12,6 @@ DII::Module::Module(uint8_t* data, uint16_t blk_sz)
       module_info_length(data[7]),
       block_size(blk_sz),
       block_sum(module_size / block_size + ((module_size % block_size) ? 1 : 0)),
-      block_recv(0),
       recv_length(0),
       recv_completed(false),
       position(0),
@@ -54,8 +53,7 @@ bool DII::Module::check_recv_completed()
 {
     if(!recv_completed)
     {
-        if(recv_length == module_size &&
-           block_recv == block_sum)
+        if(recv_length == module_size)
         {
            recv_completed = true;
         }
@@ -147,19 +145,16 @@ DII::DII(uint8_t* data)
    int idx = 0;
    int i;
    pd += 20;
+   check_sum = 0;
    for(i = 0; i < module_number; ++i)
    {
        DII::Module* md = new DII::Module(pd + idx, block_size);
        mod_list.insert(md);
+       check_sum += md->module_size + 1;
        idx += md->module_info_length + 8;
    }
 
    private_data_length = (pd[idx] << 8) | pd[idx + 1];
-   std::set<DII::Module*, cmp_secp<Module>>::iterator mit;
-   for(mit = mod_list.begin(); mit != mod_list.end(); ++mit)
-   {
-       check_sum += (*mit)->block_size;
-   }
 }
 
 DII::~DII()
@@ -167,4 +162,15 @@ DII::~DII()
     std::set<DII::Module*, cmp_secp<Module>>::iterator mit;
     for(mit = mod_list.begin(); mit != mod_list.end(); ++mit)
         delete (*mit);
+}
+
+bool DII::operator<(const DII& dii)
+{
+    return (*dsmh) < (*dii.dsmh);
+}
+
+bool DII::operator==(const DII& dii)
+{
+    return (*dsmh) == (*dii.dsmh) &&
+           check_sum == dii.check_sum;
 }

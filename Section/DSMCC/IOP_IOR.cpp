@@ -7,17 +7,18 @@ IOP_IOR::IOP_IOR()
 
 IOP_IOR::IOP_IOR(uint8_t* data)
     : typeID_length((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]),
-      tagged_profiles_count(data[4 + typeID_length]),
+      tagged_profiles_count(data[4 + typeID_length] << 24 | data[5 + typeID_length] << 16 |
+                            data[6 + typeID_length] << 8 | data[7 + typeID_length]),
       iop_ior_length(0)
 {
-    memcpy(typeID, data + 4, 4);
+    memcpy(typeID, data + 4, typeID_length);
     int i;
-    int idx = 5 + typeID_length;
+    int idx = 8 + typeID_length;
     for(i = 0; i < tagged_profiles_count; ++i)
     {
         BIOPProfile* bf = new BIOPProfile(data + idx);
         biop_pf_list.push_back(bf);
-        idx += bf->profile_data_length + 4;
+        idx += bf->profile_data_length + 8;
     }
     iop_ior_length = idx;
 }

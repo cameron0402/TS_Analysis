@@ -246,7 +246,7 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
                 if(type == *uit)
                 {
                     DsmccSection* ds = new DsmccSection(data, len, crc);
-                    ds->belong = (*eit);
+                    ds->setBelong(*eit);
                     return ds;
                 }
             }

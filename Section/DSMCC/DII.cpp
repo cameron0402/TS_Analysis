@@ -1,4 +1,6 @@
 #include "DII.h"
+#include "../../Descriptor/DSMCC/ModuleLinkDesc.h"
+#include "../../Descriptor/DSMCC/CompressModuleDesc.h"
 
 DII::Module::Module()
 {
@@ -17,16 +19,56 @@ DII::Module::Module(uint8_t* data, uint16_t blk_sz)
       position(0),
       link_module_id(0),
       compressed(false),
-      raw_module_size(module_size)
+      raw_module_size(module_size),
+      obj_list()
 {
     int idx = 0;
     uint8_t* pd = data + 8;
     mdif = new ModuleInfo(pd);
 
+    std::list<Descriptor*>::iterator dit;
+    for(dit = mdif->dsmcc_desc_list.begin(); dit != mdif->dsmcc_desc_list.end(); ++dit)
+    {
+        if((*dit)->tag == 0x04)
+        {
+            position = ((ModuleLinkDesc*)(*dit))->position;
+            link_module_id = ((ModuleLinkDesc*)(*dit))->module_id;
+        }
+
+        if((*dit)->tag == 0x09)
+        {
+            compressed = true;
+        }
+    }
+
     block_map = new uint8_t[block_sum];
     memset(block_map, 0, block_sum);
 
     module_data = new uint8_t[module_size];
+}
+
+void DII::Module::resolved()
+{
+    if(!recv_completed)
+        return ;
+
+    uint8_t* pd = module_data;
+    ObjFactory objf;
+    int idx = 0;
+    while(idx < module_size)
+    {
+        ObjDsmcc* odc = objf.createObj(pd + idx);
+        if(odc != NULL)
+        {
+            obj_list.insert(odc);
+            idx += odc->obj_length;
+        }
+        else
+        {
+            break;
+        }
+    }
+
 }
 
 bool DII::Module::operator<(const Module& md)
@@ -47,18 +89,13 @@ DII::Module::~Module()
         delete []block_map;
     if(module_data != NULL)
         delete []module_data;
-}
 
-bool DII::Module::check_recv_completed()
-{
-    if(!recv_completed)
+    std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator oit;
+    for(oit = obj_list.begin(); oit != obj_list.end(); ++oit)
     {
-        if(recv_length == module_size)
-        {
-           recv_completed = true;
-        }
+        delete (*oit);
     }
-    return recv_completed;
+    obj_list.clear();
 }
 
 DII::ModuleInfo::Tap::Tap()
@@ -102,8 +139,9 @@ DII::ModuleInfo::ModuleInfo(uint8_t* data)
     }
 
     pd += idx;
-    desc_length = pd[idx];
+    desc_length = pd[0];
     DSMCCDescFactory desfac;
+    pd += 1;
     idx = 0;
     while(idx < desc_length)
     {

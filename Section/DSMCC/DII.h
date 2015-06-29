@@ -2,6 +2,7 @@
 #define _DII_H_
 
 #include "DsmccMessageHeader.h"
+#include "ObjDsmcc.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DSMCC/DSMCCDescFactory.h"
 
@@ -25,7 +26,7 @@ public:
         };
         ModuleInfo();
         ModuleInfo(uint8_t* data);
-        virtual ~ModuleInfo();
+        ~ModuleInfo();
 
         uint32_t module_time_out;
         uint32_t block_time_out;
@@ -42,7 +43,7 @@ public:
         Module();
         Module(uint8_t* data, uint16_t blk_sz);
         virtual ~Module();
-        bool check_recv_completed();
+        void resolved();
         bool operator <(const Module& md);
         bool operator ==(const Module& md);
 
@@ -66,6 +67,8 @@ public:
         uint32_t raw_module_size;   
 
         uint8_t* module_data;
+
+        std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>> obj_list;
     };
 
     DII();

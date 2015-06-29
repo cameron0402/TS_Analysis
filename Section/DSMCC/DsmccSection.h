@@ -5,11 +5,19 @@
 #include "DII.h"
 #include "DSI.h"
 
+class DsmccSection;
+
 class ESGInfo
 {
 public:
     ESGInfo(uint16_t ser_id = 0);
     ~ESGInfo();
+
+    void saveDsmccData(DsmccSection* dss);
+    void saveDIIInfo(DsmccSection* dss);
+    void saveDSIInfo(DsmccSection* dss);
+    void saveDDBData(DsmccSection* dss);
+    void reset();
 
     uint16_t service_id;
     std::list<uint16_t> pid_list;
@@ -25,9 +33,8 @@ public:
     virtual ~DsmccSection();
 
     virtual bool joinTo(SectionFactory* sf);
-    virtual void getDetail();
     virtual void resolved();
-    void saveDDBData();
+    void setBelong(ESGInfo* bl);
 
     uint16_t table_id_extension;
     uint8_t version_number;

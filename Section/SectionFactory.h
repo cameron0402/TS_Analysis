@@ -49,11 +49,13 @@ class SectionFactory
 
     std::set<EIT*, cmp_secp<EIT>> eit_list;
 
-    std::list<ESGInfo*> esg_list;
-
     TDT* tdt;
 
     TOT* tot;
+
+    std::list<ESGInfo*> esg_list;
+    
+    std::list<ESGInfo*> esg_stable_list;
 
     SectionData* raw_sarr[MAX_PID_NUM];
   private:

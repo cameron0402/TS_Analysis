@@ -21,7 +21,6 @@ void SectionFactory::sectionGather(int pid, uint8_t* ts_packet)
     if(raw_sarr[pid] == NULL)
     {
         return ;
-        //raw_sarr[pid] = new SectionData();
     }
 
     SectionData* raw_section = raw_sarr[pid];
@@ -128,8 +127,6 @@ void SectionFactory::sectionGather(int pid, uint8_t* ts_packet)
             available_length -= remain_length;
             raw_section->recv_length += remain_length;
 
-            raw_section->get_crc();
-
             try
             {
                 sec = createSectoin(raw_section);
@@ -180,36 +177,39 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
     uint8_t* data = raw_section->section_data;
     uint16_t len = raw_section->section_data_length;
     bool srbf = raw_section->scrambling_flag;
-    uint32_t crc = raw_section->crc;
     if(type == 0x00)
     {
         if(srbf)
             throw PatErr(PatErr::PSRB);
-
-        return new PAT(data, len, crc);
+        raw_section->get_crc();
+        return new PAT(data, len, raw_section->crc);
     }
     if(type == 0x01)
     {
-        return new CAT(data, len, crc);
+        raw_section->get_crc();
+        return new CAT(data, len, raw_section->crc);
     }
     if(type == 0x10)
     {
+        raw_section->get_crc();
         if(data[0] == 0x40 || data[1] == 0x41) 
-            return new NIT(data, len, crc);
+            return new NIT(data, len, raw_section->crc);
     }
     if(type == 0x11)
     {
+        raw_section->get_crc();
         if(data[0] == 0x4A)
-            return new BAT(data, len, crc);
+            return new BAT(data, len, raw_section->crc);
         if(data[0] == 0x42 || data[0] == 0x46)
-            return new SDT(data, len, crc);
+            return new SDT(data, len, raw_section->crc);
     }
 
     if(type == 0x12)
     {
+        raw_section->get_crc();
         if(data[0] == 0x4E || data[0] == 0x4F ||
            (data[0] <= 0x6F && data[0] >= 0x50))
-           return new EIT(data, len, crc);
+           return new EIT(data, len, raw_section->crc);
     }
 
     if(type == 0x14)
@@ -217,7 +217,10 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
         if(data[0] == 0x70)
             return new TDT(data, len);
         if(data[0] == 0x73)
-            return new TOT(data, len, crc);
+        {
+            raw_section->get_crc();
+            return new TOT(data, len, raw_section->crc);
+        }
     }
 
     if(pat != NULL)
@@ -230,7 +233,8 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
                 if(srbf)
                     throw PmtErr(PmtErr::PSRB);
 
-                return new PMT(data, len, crc);
+                raw_section->get_crc();
+                return new PMT(data, len, raw_section->crc);
             }
         }
     }
@@ -245,7 +249,7 @@ Section* SectionFactory::createSectoin(SectionData* raw_section)
             {
                 if(type == *uit)
                 {
-                    DsmccSection* ds = new DsmccSection(data, len, crc);
+                    DsmccSection* ds = new DsmccSection(data, len);
                     ds->setBelong(*eit);
                     return ds;
                 }
@@ -277,6 +281,8 @@ SectionFactory::SectionFactory()
       eit_list(),
       tdt(NULL),
       tot(NULL),
+      esg_list(),
+      esg_stable_list(),
       raw_sarr()
 {
     int i;
@@ -345,6 +351,12 @@ SectionFactory::~SectionFactory()
         delete (*esit);
     }
     esg_list.clear();
+
+    for(esit = esg_stable_list.begin(); esit != esg_stable_list.end(); ++esit)
+    {
+        delete (*esit);
+    }
+    esg_stable_list.clear();
 
     for(int i = 0; i < MAX_PID_NUM; ++i)
     {

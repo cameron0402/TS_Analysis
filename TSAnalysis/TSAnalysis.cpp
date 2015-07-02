@@ -464,6 +464,9 @@ void TSAnalysis::ts_analysis()
             ++ts_err.level2_err;
             ++ts_err.err;
         }
-       
+        catch(DsmccErr&)
+        {
+
+        }   
     }
 }

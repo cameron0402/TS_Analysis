@@ -10,6 +10,7 @@
 #include "XML/tinyxml.h"
 #include "CodeTrans/UTF_GB.h"
 #include "excp.h"
+#include "direct.h"
 
 typedef unsigned char uint8_t;
 typedef char int8_t;

@@ -1,8 +1,22 @@
 #include "DII.h"
+#include "zlib.h"
+#include "zconf.h"
 #include "../../Descriptor/DSMCC/ModuleLinkDesc.h"
 #include "../../Descriptor/DSMCC/CompressModuleDesc.h"
 
 DII::Module::Module()
+    : mdif(NULL),
+      block_map(NULL),
+      module_data(NULL)
+{
+
+}
+
+DII::Module::Module(uint16_t id)
+    : moduleID(id),
+      mdif(NULL),
+      block_map(NULL),
+      module_data(NULL)
 {
 
 }
@@ -16,7 +30,7 @@ DII::Module::Module(uint8_t* data, uint16_t blk_sz)
       block_sum(module_size / block_size + ((module_size % block_size) ? 1 : 0)),
       recv_length(0),
       recv_completed(false),
-      position(0),
+      position(0xFF),
       link_module_id(0),
       compressed(false),
       raw_module_size(module_size),
@@ -47,20 +61,54 @@ DII::Module::Module(uint8_t* data, uint16_t blk_sz)
     module_data = new uint8_t[module_size];
 }
 
+int DII::Module::uncompress_module()
+{
+    int res ;
+    const int MDL_COMPRESS_RATE = 0x50;
+    size_t bound_size = module_size * MDL_COMPRESS_RATE;
+    uint8_t* buff = new uint8_t[bound_size];
+    unsigned long len = bound_size;
+
+    res = uncompress(buff, &len, module_data, module_size);
+    if(res == Z_OK)
+    {
+        raw_module_size = len;
+        delete(module_data);
+        module_data = new uint8_t[len];
+        memcpy(module_data, buff, len);
+    }
+    delete []buff;
+
+    return res;
+}
+
 void DII::Module::resolved()
 {
     if(!recv_completed)
         return ;
 
-    uint8_t* pd = module_data;
+    if(position != 0xFF && position != 0x00)
+        return ;
+
     ObjFactory objf;
     int idx = 0;
-    while(idx < module_size)
+
+    if(compressed)
+    {
+        uncompress_module();
+    }
+
+    uint8_t* pd = module_data;
+    while(idx < raw_module_size)
     {
         ObjDsmcc* odc = objf.createObj(pd + idx);
         if(odc != NULL)
         {
-            obj_list.insert(odc);
+            obj_list.push_back(odc);
+            if(compressed)
+            {
+                odc->uncompressObj();
+            }
             idx += odc->obj_length;
         }
         else
@@ -68,7 +116,7 @@ void DII::Module::resolved()
             break;
         }
     }
-
+    
 }
 
 bool DII::Module::operator<(const Module& md)
@@ -90,7 +138,7 @@ DII::Module::~Module()
     if(module_data != NULL)
         delete []module_data;
 
-    std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator oit;
+    std::list<ObjDsmcc*>::iterator oit;
     for(oit = obj_list.begin(); oit != obj_list.end(); ++oit)
     {
         delete (*oit);
@@ -167,32 +215,48 @@ DII::DII()
 
 }
 
+uint32_t DII::get_check_sum()
+{
+    check_sum = dsmh->message_length + dsmh->transactionId;
+    for(int i = -6; i < 6; ++i)
+    {
+        check_sum += raw_dii_data[dsmh->message_length + i] * raw_dii_data[dsmh->message_length + i];
+    }
+    return check_sum;
+}
+
+void DII::getDetail()
+{
+    uint8_t* pd = raw_dii_data + 12 + dsmh->adaptation_length;
+    downloadID = (pd[0] << 24) | (pd[1] << 16) | (pd[2] << 8) | (pd[3]);
+    block_size = (pd[4] << 8) | pd[5];
+    window_size = pd[6];
+    ack_period = pd[7];
+    tc_download_window = (pd[8] << 24) | (pd[9] << 16) | (pd[10] << 8) | pd[11];
+    tc_download_scenario = (pd[12] << 24) | (pd[13] << 16) | (pd[14] << 8) | pd[15];
+    compatibility = (pd[16] << 8) | pd[17];
+    module_number = (pd[18] << 8) | pd[19];
+    recv_moudule_number = 0;
+
+    int idx = 0;
+    int i;
+    pd += 20;
+    for(i = 0; i < module_number; ++i)
+    {
+        DII::Module* md = new DII::Module(pd + idx, block_size);
+        mod_list.insert(md);
+        idx += md->module_info_length + 8;
+    }
+
+    private_data_length = (pd[idx] << 8) | pd[idx + 1];
+}
+
 DII::DII(uint8_t* data)
 {
    dsmh = new DsmccMessageHeader(data);
-   uint8_t* pd = data + 12 + dsmh->adaptation_length;
-   downloadID = (pd[0] << 24) | (pd[1] << 16) | (pd[2] << 8) | (pd[3]);
-   block_size = (pd[4] << 8) | pd[5];
-   window_size = pd[6];
-   ack_period = pd[7];
-   tc_download_window = (pd[8] << 24) | (pd[9] << 16) | (pd[10] << 8) | pd[11];
-   tc_download_scenario = (pd[12] << 24) | (pd[13] << 16) | (pd[14] << 8) | pd[15];
-   compatibility = (pd[16] << 8) | pd[17];
-   module_number = (pd[18] << 8) | pd[19];
-
-   int idx = 0;
-   int i;
-   pd += 20;
-   check_sum = 0;
-   for(i = 0; i < module_number; ++i)
-   {
-       DII::Module* md = new DII::Module(pd + idx, block_size);
-       mod_list.insert(md);
-       check_sum += md->module_size + 1;
-       idx += md->module_info_length + 8;
-   }
-
-   private_data_length = (pd[idx] << 8) | pd[idx + 1];
+   raw_dii_data = new uint8_t[dsmh->message_length + 12];
+   memcpy(raw_dii_data, data, dsmh->message_length + 12);
+   get_check_sum();
 }
 
 DII::~DII()

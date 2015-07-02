@@ -58,4 +58,6 @@ public:
     ~CatErr(){}
 };
 
+class DsmccErr{};
+
 #endif

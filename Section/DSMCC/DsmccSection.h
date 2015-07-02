@@ -18,11 +18,22 @@ public:
     void saveDSIInfo(DsmccSection* dss);
     void saveDDBData(DsmccSection* dss);
     void reset();
+    void resolved();
+    uint32_t getCheckSum();
+    void saveFile(char* save_path);
+    void saveFile(char* save_path, ObjDsmcc* od);
+
+    bool recvCompleted();
+    bool operator ==(const ESGInfo& ei);
 
     uint16_t service_id;
     std::list<uint16_t> pid_list;
     DSI* dsi;
-    std::list<DII*> dii_list;
+    std::set<DII*, cmp_secp<DII>> dii_list;
+    std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>> obj_list;
+
+    DII::Module sh_md; //just for search used
+    uint32_t check_sum;
 };
 
 class DsmccSection : public Section

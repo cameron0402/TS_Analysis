@@ -2,6 +2,11 @@
 #include "ObjDir.h"
 #include "ObjFile.h"
 
+ObjDsmcc::ObjDsmcc()
+{
+
+}
+
 ObjDsmcc::ObjDsmcc(uint8_t* data)
     : version_major(data[4]),
       version_minor(data[5]),
@@ -11,13 +16,14 @@ ObjDsmcc::ObjDsmcc(uint8_t* data)
       object_key_length(data[12]),
       object_kind_length((data[13 + object_key_length] << 24) | (data[14 + object_key_length] << 16) |
                          (data[15 + object_key_length] << 8) | (data[16 + object_key_length])),
-      object_info_length(data[21 + object_key_length] << 8 | data[22 + object_key_length])
+      object_info_length(data[21 + object_key_length] << 8 | data[22 + object_key_length]),
+      saved(false)
 {
     memcpy(magic, data, 4);
     object_key = 0;
     for(int i = 0; i < object_key_length; ++i)
     {
-        object_key << 8;
+        object_key <<= 8;
         object_key |= data[13 + i];
     }
     memcpy(object_kind, data + 17 + object_key_length, 4);
@@ -38,6 +44,11 @@ bool ObjDsmcc::operator<(const ObjDsmcc& odc)
 bool ObjDsmcc::operator==(const ObjDsmcc& odc)
 {
     return object_key == odc.object_key;
+}
+
+int ObjDsmcc::uncompressObj()
+{
+    return -1;
 }
 
 ObjDsmcc* ObjFactory::createObj(uint8_t* data)

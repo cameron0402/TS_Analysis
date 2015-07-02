@@ -21,6 +21,8 @@ Binding::Binding(uint8_t* data)
 
     object_info_length = (pd[0] << 8) | pd[1];
     binding_length += 2 + object_info_length;
+
+    object_key = (*(iop_ior->biop_pf_list.begin()))->biop_objloc->object_key;
 }
 
 Binding::~Binding()
@@ -31,20 +33,18 @@ Binding::~Binding()
         delete iop_ior;
 }
 
-bool Binding::operator<(const Binding& bd)
-{
-    return (*(bd.iop_ior->biop_pf_list.begin()))->biop_objloc->object_key <
-           (*(iop_ior->biop_pf_list.begin()))->biop_objloc->object_key;
-}
-
-bool Binding::operator==(const Binding& bd)
-{
-    return (*(bd.iop_ior->biop_pf_list.begin()))->biop_objloc->object_key ==
-           (*(iop_ior->biop_pf_list.begin()))->biop_objloc->object_key;
-}
+//bool Binding::operator<(const Binding& bd)
+//{
+//    return object_key < bd.object_key;
+//}
+//
+//bool Binding::operator==(const Binding& bd)
+//{
+//    return object_key == bd.object_key;
+//}
 
 ObjDir::ObjDir(uint8_t* data)
-    : ObjDsmcc(data)
+    : ObjDsmcc(data)    
 {
     uint8_t* pd = data + obj_length + object_info_length;
     obj_length += object_info_length;
@@ -61,7 +61,7 @@ ObjDir::ObjDir(uint8_t* data)
     for(int i = 0; i < binding_count; ++i)
     {
         Binding* bd = new Binding(pd);
-        binding_list.insert(bd);
+        binding_list.push_back(bd);
         pd += bd->binding_length;
         obj_length += bd->binding_length;
     }
@@ -69,7 +69,7 @@ ObjDir::ObjDir(uint8_t* data)
 
 ObjDir::~ObjDir()
 {
-    std::set<Binding*, cmp_secp<Binding>>::iterator bit;
+    std::list<Binding*>::iterator bit;
     for(bit = binding_list.begin(); bit != binding_list.end(); ++bit)
         delete (*bit);
     binding_list.clear();

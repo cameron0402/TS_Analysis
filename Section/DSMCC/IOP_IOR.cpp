@@ -7,10 +7,12 @@ BIOP_Name::BIOP_Name(uint8_t* data)
     kind_length(data[2 + id_length]),
     kind_data(NULL)
 {
-    id_data = new uint8_t[id_length];
+    id_data = new uint8_t[id_length + 1];
+    id_data[id_length] = 0;
     memcpy(id_data, data + 2, id_length);
 
-    kind_data = new uint8_t[kind_length];
+    kind_data = new uint8_t[kind_length + 1];
+    kind_data[kind_length] = 0; 
     memcpy(kind_data, data + 3 + id_length, kind_length);
 }
 
@@ -40,7 +42,7 @@ BIOP_ObjectLocation::BIOP_ObjectLocation(uint8_t* data)
     object_key = 0;
     for(int i = 0; i < object_key_length; ++i)
     {
-        object_key << 8;
+        object_key <<= 8;
         object_key |= data[14 + i];
     }
 }

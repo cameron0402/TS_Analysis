@@ -97,12 +97,8 @@ bool PMT::joinTo(SectionFactory* sf)
         {
             if((*sit)->type == 0x0B)
             {
-                if(sf->raw_sarr[(*sit)->elem_PID] != NULL)
-                {
-                    delete sf->raw_sarr[(*sit)->elem_PID];
-                    sf->raw_sarr[(*sit)->elem_PID] = NULL;
-                }
-                sf->raw_sarr[(*sit)->elem_PID] = new SectionData();
+                if(sf->raw_sarr[(*sit)->elem_PID] == NULL)
+                    sf->raw_sarr[(*sit)->elem_PID] = new SectionData();
 
                 if(ei == NULL)
                 {

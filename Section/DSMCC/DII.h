@@ -41,9 +41,11 @@ public:
     {
     public:
         Module();
+        Module(uint16_t id);
         Module(uint8_t* data, uint16_t blk_sz);
         virtual ~Module();
         void resolved();
+        int uncompress_module();
         bool operator <(const Module& md);
         bool operator ==(const Module& md);
 
@@ -68,7 +70,7 @@ public:
 
         uint8_t* module_data;
 
-        std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>> obj_list;
+        std::list<ObjDsmcc*> obj_list;
     };
 
     DII();
@@ -77,6 +79,8 @@ public:
 
     bool operator<(const DII& dii);
     bool operator==(const DII& dii);
+    uint32_t get_check_sum();
+    void getDetail();
 
     DsmccMessageHeader* dsmh;
     uint32_t downloadID;
@@ -91,6 +95,8 @@ public:
     uint16_t private_data_length;
 
     uint32_t check_sum;
+    uint8_t* raw_dii_data;
+    uint16_t recv_moudule_number;
     //uint8_t* private_data;
 };
 

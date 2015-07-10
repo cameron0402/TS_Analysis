@@ -31,7 +31,7 @@ public:
     /*.....*/
 
     PES* ref_pes;
-    
+    uint8_t* raw_pes_data[8192];
 };
 
 #endif

@@ -1,9 +1,7 @@
 #ifndef _TS_ANALYSIS_H_
 #define _TS_ANALYSIS_H_
 
-#include "../Section/SectionFactory.h"
-
-enum PID_type {PNUL, SECTION, ELE_STREAM};
+#include "TSFactory.h"
 
 struct TS_err
 {
@@ -66,7 +64,7 @@ public:
 
     struct PID_state
     {
-        PID_type type;
+        //PID_type type;
         char* description;
         bool scrambling_flag;
         float avg_bitrate;
@@ -96,7 +94,7 @@ private:
     std::ifstream inf;
     char* in_ts_file;
 
-    SectionFactory* sf;
+    TSFactory* sf;
 };
 
 #endif

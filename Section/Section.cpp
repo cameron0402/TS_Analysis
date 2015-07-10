@@ -1,5 +1,5 @@
 #include "Section.h"
-#include "SectionFactory.h"
+#include "../TSAnalysis/TSFactory.h"
 
 Section::Section() : xml(NULL)
 {
@@ -30,7 +30,7 @@ Section::~Section()
 }
 
 //##ModelId=5555540B00A0
-bool Section::joinTo(SectionFactory* sf)
+bool Section::joinTo(TSFactory* sf)
 {
     return false;
 }

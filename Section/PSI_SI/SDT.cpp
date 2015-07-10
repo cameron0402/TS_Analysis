@@ -1,5 +1,5 @@
 #include "SDT.h"
-#include "../SectionFactory.h"
+#include "../../TSAnalysis/TSFactory.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
@@ -111,7 +111,7 @@ bool SDT::operator<(const SDT& st)
     return false;
 }
 
-bool SDT::joinTo(SectionFactory* sf)
+bool SDT::joinTo(TSFactory* sf)
 {
     std::pair<std::set<SDT*, cmp_secp<SDT>>::iterator, bool> ret;
     ret = sf->sdt_list.insert(this);

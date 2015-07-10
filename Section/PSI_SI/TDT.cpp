@@ -1,5 +1,5 @@
 #include "TDT.h"
-#include "../SectionFactory.h"
+#include "../../TSAnalysis/TSFactory.h"
 
 //##ModelId=556406A303DC
 TDT::TDT()
@@ -19,7 +19,7 @@ TDT::~TDT()
 {
 }
 
-bool TDT::joinTo(SectionFactory* sf)
+bool TDT::joinTo(TSFactory* sf)
 {
     if(sf->tdt != NULL)
         return false;

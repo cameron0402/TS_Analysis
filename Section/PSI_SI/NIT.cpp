@@ -1,5 +1,5 @@
 #include "NIT.h"
-#include "../SectionFactory.h"
+#include "../../TSAnalysis/TSFactory.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
@@ -80,7 +80,7 @@ NIT::TransStreamInfo::~TransStreamInfo()
     desc_list.clear();
 }
 
-bool NIT::joinTo(SectionFactory* sf)
+bool NIT::joinTo(TSFactory* sf)
 {
     std::pair<std::set<NIT*, cmp_secp<NIT>>::iterator, bool> ret;
     ret = sf->nit_list.insert(this);

@@ -1,5 +1,5 @@
 #include "CAT.h"
-#include "../SectionFactory.h"
+#include "../../TSAnalysis/TSFactory.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
@@ -39,7 +39,7 @@ CAT::~CAT()
 }
 
 
-bool CAT::joinTo(SectionFactory* sf)
+bool CAT::joinTo(TSFactory* sf)
 {
     std::pair<std::set<CAT*, cmp_secp<CAT>>::iterator, bool> ret;
     ret = sf->cat_list.insert(this);

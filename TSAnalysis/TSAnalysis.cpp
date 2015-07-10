@@ -75,7 +75,7 @@ TSAnalysis::TSAnalysis(char* infile)
     int i;
     for(i = 0; i <= 0x1F; i++)
     {
-        ps[i].type = SECTION;
+        //ps[i].type = SECTION;
         ps[i].description = section_desc[i];
     }
 }
@@ -230,7 +230,7 @@ void TSAnalysis::ts_analysis()
     }
 
     inf.seekg(st_idx, inf.beg);
-    sf = SectionFactory::GetInstance();
+    sf = TSFactory::GetInstance();
     while(!inf.eof())
     {
         try
@@ -241,14 +241,7 @@ void TSAnalysis::ts_analysis()
 
             pid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
 
-            if(pid == 0x1FFFF)
-            {
-
-            }
-            else
-            {
-                sf->sectionGather(pid, test_buf);
-            }
+            sf->TSGather(pid, test_buf);
         }
         catch(SyncErr&)
         {
@@ -436,8 +429,8 @@ void TSAnalysis::ts_analysis()
             err->SetAttribute("num", ts_err.err);
             err->SetAttribute("time", inf.tellg());
             err->SetAttribute("pos", "");
-            err->SetAttribute("type", "PCR精度错误");
-            err->SetAttribute("desc", "PCR精度超过正负500ns");
+            err->SetAttribute("type", "PTS错误");
+            err->SetAttribute("desc", "PTS间隔超过700ms");
             err_xml->LinkEndChild(err);
             ++ts_err.pts_err;
             ++ts_err.level2_err;

@@ -47,7 +47,7 @@ class EIT : public Section
     //##ModelId=5563DB2B0060
     virtual ~EIT();
 
-    virtual bool joinTo(SectionFactory* sf);
+    virtual bool joinTo(TSFactory* sf);
     bool operator ==(const EIT& et);
     bool operator <(const EIT& et);
 

@@ -1,4 +1,4 @@
-#include "SectionData.h"
+#include "TSData.h"
 
 static uint32_t dvbpsi_crc32_table[256] =
 {
@@ -50,18 +50,19 @@ uint32_t ts_crc(void *buf, size_t size, int mode)
     return crc;
 }
 
-uint32_t SectionData::get_crc()
+uint32_t TSData::get_crc()
 {
     if(crc == 0xFFFFFFFF)
-        crc = ts_crc(section_data, section_data_length - 4, 32);
+        crc = ts_crc(ts_data, ts_data_length - 4, 32);
     return crc;
 }
 
 //##ModelId=555EC4060105
-SectionData::SectionData()
+TSData::TSData(ts_type tp)
     : PID(0xFFFF),
-      section_data_length(0),
-      section_data(new uint8_t[MAX_SECTION_LENGTH]),
+      type(tp),
+      ts_data_length(0),
+      ts_data(new uint8_t[MAX_TS_LENGTH]),
       continuity_counter(INVALID_CC),
       discontinuity_flag(false),
       recv_length(0),
@@ -71,16 +72,16 @@ SectionData::SectionData()
 }
 
 //##ModelId=555EC41A0158
-SectionData::~SectionData()
+TSData::~TSData()
 {
-    delete []section_data;
+    delete []ts_data;
 }
 
 //##ModelId=555EC45001F6
-void SectionData::Reset()
+void TSData::Reset()
 {
     //PID = 0xFFFF;
-    section_data_length = 0;
+    ts_data_length = 0;
     recv_length = 0;
     continuity_counter = INVALID_CC;
     discontinuity_flag = false;

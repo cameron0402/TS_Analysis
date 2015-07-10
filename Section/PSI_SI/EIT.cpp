@@ -1,5 +1,5 @@
 #include "EIT.h"
-#include "../SectionFactory.h"
+#include "../../TSAnalysis/TSFactory.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
@@ -85,9 +85,8 @@ bool EIT::operator==(const EIT& et)
     return table_id == et.table_id &&
            transport_stream_id == et.transport_stream_id &&
            service_id == et.service_id &&
-           version_number == et.version_number &&
+           //version_number == et.version_number &&
 		   section_number == et.section_number;
-    //return crc32 == et.crc32;
 }
 
 bool EIT::operator<(const EIT& et)
@@ -104,13 +103,13 @@ bool EIT::operator<(const EIT& et)
                 return true;
             else if(service_id == et.service_id)
             {
-                if(version_number < et.version_number)
-                    return true;
-                else if(version_number == et.version_number)
-                {
+                //if(version_number < et.version_number)
+                //    return true;
+                //else if(version_number == et.version_number)
+                //{
                     if(section_number < et.section_number)
                         return true;
-                }
+                //}
             }
         }
     }
@@ -129,13 +128,29 @@ void EIT::getDetail()
     }
 }
 
-bool EIT::joinTo(SectionFactory* sf)
+bool EIT::joinTo(TSFactory* sf)
 {
-    std::pair<std::set<EIT*, cmp_secp<EIT>>::iterator, bool> ret;
-    ret = sf->eit_list.insert(this);
-    if(ret.second)
+    std::set<EIT*, cmp_secp<EIT>>::iterator
+        fit = sf->eit_list.find(this);
+
+    if(fit == sf->eit_list.end())
+    {
+        sf->eit_list.insert(this);
         this->getDetail();
-    return ret.second;
+        return true;
+    }
+    else
+    {
+        if((*fit)->version_number < this->version_number)
+        {
+            sf->eit_list.erase(fit);
+            sf->eit_list.insert(this);
+            this->getDetail();
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void EIT::resolved()

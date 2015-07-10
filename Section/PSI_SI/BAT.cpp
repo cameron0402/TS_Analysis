@@ -1,5 +1,5 @@
 #include "BAT.h"
-#include "../SectionFactory.h"
+#include "../../TSAnalysis/TSFactory.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
@@ -85,7 +85,7 @@ bool BAT::operator==(const BAT& bt)
     return crc32 == bt.crc32;
 }
 
-bool BAT::joinTo(SectionFactory* sf)
+bool BAT::joinTo(TSFactory* sf)
 {
     std::list<BAT*>::iterator bit;
     for(bit = sf->bat_list.begin(); bit != sf->bat_list.end(); ++bit)

@@ -1,5 +1,15 @@
 #include "ServiceDesc.h"
 
+//业务类型列表
+const char* const service_type_table[17] = 
+{
+    "", 
+    "数字电视业务",     "数字音频广播业务", "图文电视业务",   "NVOD 参考业务",
+    "NVOD 时移业务",    "马赛克业务",       "PAL 制编码信号", "SECAM 制编码信号",
+    "D/D2-MAC",         "调频广播",         "NTSC 制信号",    "数据广播业务",
+    "公共接口使用预留", "RCS 映射",         "RCS FLS",        "DVB MHP 业务"
+};
+
 //##ModelId=555A8EC10111
 ServiceDesc::ServiceDesc()
 {

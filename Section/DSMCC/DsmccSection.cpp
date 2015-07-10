@@ -1,7 +1,7 @@
 #include "DsmccSection.h"
 #include "ObjDir.h"
 #include "ObjFile.h"
-#include "../SectionFactory.h"
+#include "../../TSAnalysis/TSFactory.h"
 
 DsmccSection::DsmccSection()
 {
@@ -44,7 +44,7 @@ void DsmccSection::setBelong(ESGInfo* bl)
     belong = bl;
 }
 
-bool DsmccSection::joinTo(SectionFactory* sf)
+bool DsmccSection::joinTo(TSFactory* sf)
 {
     if(belong != NULL)
     {

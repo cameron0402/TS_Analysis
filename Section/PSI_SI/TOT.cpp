@@ -1,5 +1,5 @@
 #include "TOT.h"
-#include "../SectionFactory.h"
+#include "../../TSAnalysis/TSFactory.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
@@ -33,7 +33,7 @@ TOT::~TOT()
     desc_list.clear();
 }
 
-bool TOT::joinTo(SectionFactory* sf)
+bool TOT::joinTo(TSFactory* sf)
 {
     if(sf->tot != NULL)
         return false;

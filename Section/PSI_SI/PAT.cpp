@@ -1,6 +1,6 @@
 #include "PAT.h"
-#include "../SectionFactory.h"
-#include "../SectionData.h"
+#include "../../TSAnalysis/TSFactory.h"
+#include "../../TSAnalysis/TSData.h"
 
 //##ModelId=55555EB90262
 PAT::PAT()
@@ -67,7 +67,7 @@ void PAT::getDetail()
     }
 }
 
-bool PAT::joinTo(SectionFactory* sf)
+bool PAT::joinTo(TSFactory* sf)
 {
     if(sf->pat == NULL)
     {
@@ -75,7 +75,11 @@ bool PAT::joinTo(SectionFactory* sf)
         std::list<ProgInfo*>::iterator pit;
         for(pit = prog_list.begin(); pit != prog_list.end(); ++pit)
         {
-            sf->raw_sarr[(*pit)->program_map_PID] = new SectionData();
+            if(sf->raw_sarr[(*pit)->program_map_PID] != NULL)
+            {
+                delete sf->raw_sarr[(*pit)->program_map_PID];
+            }
+            sf->raw_sarr[(*pit)->program_map_PID] = new TSData(TSData::SECTION);
         }
         sf->pat = this;
         return true;

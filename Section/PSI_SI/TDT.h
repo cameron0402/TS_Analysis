@@ -15,7 +15,7 @@ class TDT : public Section
     //##ModelId=556406AC01FA
     virtual ~TDT();
 
-    virtual bool joinTo(SectionFactory* sf);
+    virtual bool joinTo(TSFactory* sf);
 
     virtual void resolved();
 

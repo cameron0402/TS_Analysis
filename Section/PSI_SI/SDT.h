@@ -46,7 +46,7 @@ class SDT : public Section
     //##ModelId=5563CE0800BB
     virtual ~SDT();
 
-    virtual bool joinTo(SectionFactory* sf);
+    virtual bool joinTo(TSFactory* sf);
     bool operator ==(const SDT& st);
     bool operator <(const SDT& st);
 

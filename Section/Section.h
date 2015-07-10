@@ -3,13 +3,13 @@
 
 #include "../def.h"
 
-class SectionFactory;
+class TSFactory;
 //##ModelId=5555516C0171
 class Section
 {
   public:
     //##ModelId=5555540B00A0
-    virtual bool joinTo(SectionFactory* sf);
+    virtual bool joinTo(TSFactory* sf);
 
     //##ModelId=555561E1025F
     virtual void resolved();

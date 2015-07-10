@@ -43,7 +43,7 @@ public:
     DsmccSection(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
     virtual ~DsmccSection();
 
-    virtual bool joinTo(SectionFactory* sf);
+    virtual bool joinTo(TSFactory* sf);
     virtual void resolved();
     void setBelong(ESGInfo* bl);
 

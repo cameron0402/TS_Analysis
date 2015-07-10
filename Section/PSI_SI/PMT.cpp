@@ -1,6 +1,6 @@
 #include "PMT.h"
-#include "../SectionFactory.h"
-#include "../SectionData.h"
+#include "../../TSAnalysis/TSFactory.h"
+#include "../../TSAnalysis/TSData.h"
 #include "../DSMCC/DsmccSection.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
@@ -82,7 +82,7 @@ PMT::StreamInfo::~StreamInfo()
     desc_list.clear();
 }
 
-bool PMT::joinTo(SectionFactory* sf)
+bool PMT::joinTo(TSFactory* sf)
 {
     std::pair<std::set<PMT*, cmp_secp<PMT>>::iterator, bool> ret;
     ret = sf->pmt_list.insert(this);
@@ -97,8 +97,11 @@ bool PMT::joinTo(SectionFactory* sf)
         {
             if((*sit)->type == 0x0B)
             {
-                if(sf->raw_sarr[(*sit)->elem_PID] == NULL)
-                    sf->raw_sarr[(*sit)->elem_PID] = new SectionData();
+                if(sf->raw_sarr[(*sit)->elem_PID] != NULL)
+                {
+                    delete sf->raw_sarr[(*sit)->elem_PID];
+                }
+                sf->raw_sarr[(*sit)->elem_PID] = new TSData(TSData::SECTION);
 
                 if(ei == NULL)
                 {

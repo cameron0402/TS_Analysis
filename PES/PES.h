@@ -7,7 +7,7 @@ class PES
 {
 public:
     PES();
-    PES(uint32_t raw_len);
+    PES(uint8_t* rd);
     ~PES();
 
     void Reset();
@@ -65,11 +65,11 @@ public:
     bool PES_extension_flag_2; // 1 bit
 
     //PES_private_data_flag == true
-    uint8_t PES_private_data[16]; // 128 bit
+    //uint8_t PES_private_data[16]; // 128 bit
 
     //pack_header_field_flag
     uint8_t pack_field_length; // 8 bit
-    uint8_t* pack_header;
+    //uint8_t* pack_header;
 
     //program_packer_sequence_counter_flag == true
     uint8_t program_packet_sequence_counter; // 7 bit
@@ -84,10 +84,9 @@ public:
     uint8_t PES_extension_field_length;
 
     uint8_t* PES_packet_data;
+    uint16_t PES_packet_data_length;
 
     uint8_t* raw_data;
-    uint32_t raw_pes_length;
-    uint32_t recv_length;
 };
 
 #endif

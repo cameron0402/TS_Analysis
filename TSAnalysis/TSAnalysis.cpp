@@ -67,17 +67,10 @@ TSAnalysis::TSAnalysis()
 TSAnalysis::TSAnalysis(char* infile)
     : ts_err(),
       err_xml(new TiXmlElement("ERROR_LOG")),
-      ps(),
       pmt_set(false),
       in_ts_file(infile),
       inf(infile, std::ifstream::binary)
 {
-    int i;
-    for(i = 0; i <= 0x1F; i++)
-    {
-        //ps[i].type = SECTION;
-        ps[i].description = section_desc[i];
-    }
 }
 
 
@@ -214,10 +207,39 @@ int TSAnalysis::synchronous(int pkt_sz)
     return -1;
 }
 
+void TSAnalysis::save_es(int pid, char* es_file)
+{
+    uint16_t tpid;
+    uint8_t test_buf[TS_MAX_PACKET_SIZE * 6] = {0};
+    inf.seekg(0, inf.beg);
+    inf.read((char*)test_buf, TS_MAX_PACKET_SIZE * 6);
+    std::ofstream of(es_file, std::ios_base::binary);
+
+    int st_idx = 0;
+    int pkt_sz = 0;
+    pkt_sz = get_packet_size(test_buf, TS_MAX_PACKET_SIZE * 6, &st_idx);
+    if(pkt_sz == -1)
+    {
+        std::cout << "can't find the sync-byte and can't analysis the TS!\n";
+        return ;
+    }
+
+    inf.seekg(st_idx, inf.beg);
+    sf = TSFactory::GetInstance();
+    while(!inf.eof())
+    {
+        inf.read((char*)test_buf, pkt_sz);
+        tpid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
+        if(tpid == pid)
+            sf->ESGather(pid, test_buf, of);
+    }
+}
+
 void TSAnalysis::ts_analysis()
 {
     uint16_t pid;
     uint8_t test_buf[TS_MAX_PACKET_SIZE * 6] = {0};
+    inf.seekg(0, inf.beg);
     inf.read((char*)test_buf, TS_MAX_PACKET_SIZE * 6);
 
     int st_idx = 0;
@@ -295,7 +317,7 @@ void TSAnalysis::ts_analysis()
             ++ts_err.cc_err;
             ++ts_err.level1_err;
             ++ts_err.err;
-            ++ps[pid].cc_err_num;
+            //++ps[pid].cc_err_num;
         }
         catch(PmtErr& me)
         {
@@ -422,6 +444,7 @@ void TSAnalysis::ts_analysis()
             ++ts_err.pcr_acu_err;
             ++ts_err.level2_err;
             ++ts_err.err;
+            //std::cout << ts_err.pcr_acu_err << std::endl;
         }
         catch(PtsErr&)
         {

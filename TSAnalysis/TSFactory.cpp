@@ -10,7 +10,8 @@ bool TSFactory::addSection(Section* section)
     return section->joinTo(this);
 }
 
-void TSFactory::TSGather(int pid, uint8_t* ts_packet)
+//it's a simple version of TSGather without any check
+void TSFactory::ESGather(int pid, uint8_t* ts_packet, std::ofstream& of)
 {
     uint8_t* payload_pos = NULL;
     uint8_t* p_new_pos = NULL;
@@ -19,34 +20,64 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
     uint8_t available_length;
     uint8_t adp_ctr = 0;
 
-    bool cc_err = false;
-    bool pcr_inv_err = false;
-    bool pcr_dis_err = false;
-    bool pcr_acu_err = false;
-
-    ++pkt_idx;
-
     if(raw_sarr[pid] == NULL)
     {
-        raw_sarr[pid] = new TSData(TSData::PES);
-    }
-
-    if(pid == 0x1FFF)
-    {
-        return ;
+        raw_sarr[pid] = new TSData(TSData::PESDATA);
     }
 
     TSData* raw_ts = raw_sarr[pid];
 
-    //ts packet start
-    if(ts_packet[0] != 0x47)
+    raw_ts->PID = ((ts_packet[1] & 0x1F) << 8) | ts_packet[2];
+
+    /* Skip the adaptation_field if present */
+    if(ts_packet[3] & 0x20)
+        payload_pos = ts_packet + 5 + ts_packet[4];
+    else
+        payload_pos = ts_packet + 4;
+
+    /* Return if no payload in the TS packet */
+    if(!(ts_packet[3] & 0x10))
         return ;
 
-    //section PID
-    raw_ts->PID = pid;//((ts_packet[1] & 0x1F) << 8) | ts_packet[2];
+    /* Unit start -> save the last pes packet first and then start a new one */
+    if(ts_packet[1] & 0x40)
+    {
+        if(raw_ts->recv_length != 0)
+        {
+            raw_ts->getPES();
+            if(raw_ts->pes->PES_packet_data_length != 0)
+            {
+                of.write((const char*)raw_ts->pes->PES_packet_data, raw_ts->recv_length - raw_ts->pes->PES_packet_data_length);
+            }
+            raw_ts->Reset();
+        }
+        raw_ts->recv_flag = true;
+    }
 
-    /* Analysis the adaptation_field if present */
-    adp_ctr = (ts_packet[3] & 0x30) >> 4;
+    if(raw_ts->recv_flag)
+    {
+        available_length = 188 + ts_packet - payload_pos;
+        if(available_length > 0)
+        {
+            if(raw_ts->recv_length + available_length > raw_ts->ts_data_length)
+            {
+                raw_ts->ts_data_length += TSData::MAX_TS_LENGTH;
+                raw_ts->ts_data = (uint8_t*)realloc(raw_ts->ts_data, raw_ts->ts_data_length);
+                raw_ts->pes->raw_data = raw_ts->ts_data;
+            }
+            memcpy(raw_ts->ts_data + raw_ts->recv_length, payload_pos, available_length);
+            raw_ts->recv_length += available_length;
+        }
+    }
+    
+    return ;
+}
+
+int TSFactory::adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
+                                        bool& pcr_inv_err, bool& pcr_dis_err, bool& pcr_acu_err)
+{
+    int adp_len = 0;
+    uint8_t adp_ctr = (ts_packet[3] & 0x30) >> 4;
     if(adp_ctr == 0x02 || adp_ctr == 0x03)
     {
         AdaptationField* adf = new AdaptationField(ts_packet + 4);
@@ -57,13 +88,13 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
             std::list<PCR*>::iterator pit = pcr_list.begin();
             for(; pit != pcr_list.end(); ++pit)
             {
-                if((*pit)->pid == pid)
+                if((*pit)->pid == raw_ts->PID)
                     break;
             }
 
             if(pit == pcr_list.end())
             {
-                PCR* p = new PCR(pid, 1000);
+                PCR* p = new PCR(raw_ts->PID, 1000);
                 p->st_pkt_idx = pkt_idx;
                 p->push_pcr(pcr);
                 pcr_list.push_back(p);
@@ -95,12 +126,12 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
                     (*pit)->ed_pkt_idx = pkt_idx;
                     (*pit)->intv = pcr_intv;
 
-                    if(pcr_intv_exp - pcr_intv > 14 || pcr_intv_exp - pcr_intv < -14)
+                    if(pcr_intv_exp - pcr_intv >= 14 || pcr_intv_exp - pcr_intv <= -14)
                     {
                         pcr_acu_err = true;
                     }
                 }
-                
+
                 if(inv > 100 && !adf->discontinuity_indicator)
                 {
                     pcr_dis_err = true;
@@ -111,7 +142,7 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
                     pcr_inv_err = true;
                 }
             }
-           
+
         }
 
         if(adf->discontinuity_indicator)
@@ -119,16 +150,23 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
             raw_ts->discontinuity_flag = true;
         }
 
-        payload_pos = ts_packet + 5 + adf->adaptation_field_length;
+        adp_len = 5 + adf->adaptation_field_length;
 
         delete adf;
     }
     else
     {
-        payload_pos = ts_packet + 4;
+        adp_len = 4;
     }
 
-    /* Continuity check */
+    return adp_len;
+}
+
+bool TSFactory::continuityCheck(uint8_t* ts_packet, TSData* raw_ts, bool& cc_err)
+{
+    bool first_flag = false;
+    uint8_t expected_counter;
+
     first_flag = (raw_ts->continuity_counter == TSData::INVALID_CC);
     if(first_flag)
     {
@@ -141,18 +179,7 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
 
         if(expected_counter == ((raw_ts->continuity_counter + 1) & 0xf))
         {
-            if(adp_ctr == 0x02)
-            {
-                return ;
-            }
-            else if(!raw_ts->discontinuity_flag)
-            {
-                std::cout << "PSI decoder TS duplicate (received " << (int)raw_ts->continuity_counter
-                    << " expected " << (int)expected_counter 
-                    << ") for PID " << raw_ts->PID << std::endl;
-                raw_ts->Reset();
-                return ;
-            } 
+            return false;
         }
 
         if(expected_counter != raw_ts->continuity_counter)
@@ -162,99 +189,132 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
         }
     }
 
+    return true;
+}
+
+void TSFactory::SectionAnalysis(TSData* raw_ts)
+{
+    Section* sec = NULL;
+    raw_ts->get_crc();
+    try
+    {
+        sec = createSectoin(raw_ts);
+    }
+    catch(...)
+    {
+        raw_ts->Reset();
+        throw ;
+    }
+
+    if(sec != NULL)
+    {
+        if(!addSection(sec))
+        {
+            delete sec;
+        }   
+    }
+
+    return ;
+}
+
+void TSFactory::PESAnalysis(TSData* raw_ts)
+{
+    return ;
+}
+
+void TSFactory::TSGather(int pid, uint8_t* ts_packet)
+{
+    uint8_t* payload_pos = NULL;
+    uint8_t available_length;
+
+    bool cc_err = false;
+    bool pcr_inv_err = false;
+    bool pcr_dis_err = false;
+    bool pcr_acu_err = false;
+
+    if(raw_sarr[pid] == NULL)
+    {
+        raw_sarr[pid] = new TSData(TSData::PESDATA);
+    }
+
+    ++pkt_idx;
+    ++raw_sarr[pid]->pkt_num;
+
+    if(pid == 0x1FFF)
+    {
+        return ;
+    }
+
+    TSData* raw_ts = raw_sarr[pid];
+
+    //ts packet start
+    if(ts_packet[0] != 0x47)
+    {
+        return ;
+    }
+
+    //section PID
+    raw_ts->PID = ((ts_packet[1] & 0x1F) << 8) | ts_packet[2];
+
+    /* Analysis the adaptation_field if present */
+    payload_pos = ts_packet + adaptationFieldAnalysis(ts_packet, raw_ts, pcr_inv_err, pcr_dis_err, pcr_acu_err);
+
+    /* Continuity check */
+    if(!continuityCheck(ts_packet, raw_ts, cc_err))
+    {
+        return ;
+    }
+
     /* Return if no payload in the TS packet */
     if(!(ts_packet[3] & 0x10))
+    {
         return ;
+    }
 
-    /* Unit start -> skip the pointer_field and a new section begins */
+    /* Unit start -> deal the last Section or PES first, then start gather a new one */
     if(ts_packet[1] & 0x40)
     {
-        p_new_pos = payload_pos + *payload_pos + 1;
-        payload_pos += 1;
-    }
-
-    if(raw_ts->recv_length == 0)
-    {
-        if(p_new_pos != NULL)
+        if(raw_ts->type == TSData::SECTION)
         {
-            payload_pos = p_new_pos;
-            p_new_pos = NULL;
-        }
-        else
-        {
-            return ;
-        }
-    }
-
-    /* Remaining bytes in the payload */
-    available_length = 188 + ts_packet - payload_pos;
-    while(available_length > 0)
-    {
-        uint16_t remain_length = raw_ts->ts_data_length - raw_ts->recv_length;
-        // recv the section_data header
-        if(raw_ts->recv_length == 0)
-        {
-            memcpy(raw_ts->ts_data, payload_pos, 3);
-            raw_ts->recv_length += 3;
-            raw_ts->ts_data_length = (((payload_pos[1] & 0x0F) << 8) | payload_pos[2]) + 3;
-            if(raw_ts->ts_data_length > TSData::MAX_TS_LENGTH)
+            payload_pos = payload_pos + *payload_pos + 1;
+            if(raw_ts->recv_length != 0)
             {
-                std::cout << "PSI decoder PSI section too long" << std::endl;
+                SectionAnalysis(raw_ts);
                 raw_ts->Reset();
-                available_length = 0;
-                break;
-            }
-            payload_pos += 3;
-            available_length -= 3;
+            } 
+            raw_ts->recv_flag = true;
+            raw_ts->ts_data_length = (((payload_pos[1] & 0x0F) << 8) | payload_pos[2]) + 3;
         }
-        // recv the last ts_packet
-        else if(available_length >= remain_length)
+        
+        if(raw_ts->type == TSData::PESDATA)
         {
-            Section* sec = NULL;
-            memcpy(raw_ts->ts_data + raw_ts->recv_length, payload_pos, remain_length);
-            payload_pos += remain_length;
-            available_length -= remain_length;
-            raw_ts->recv_length += remain_length;
-
-            if(raw_ts->type == TSData::SECTION) // deal section
+            if(raw_ts->recv_length != 0)
             {
-                try
-                {
-                    sec = createSectoin(raw_ts);
-                }
-                catch(...)
-                {
-                    raw_ts->Reset();
-                    throw ;
-                }
-
-                if(sec != NULL)
-                {
-                    if(!addSection(sec))
-                    {
-                        delete sec;
-                    }   
-                }
+                PESAnalysis(raw_ts);
+                raw_ts->Reset();
             }
-            else // deal pes
-            {
-
-            }
-              
-            raw_ts->Reset();
-            
-            /* A TS packet may contain any number of sections, only the first
-             * new one is flagged by the pointer_field. If the next payload
-             * byte isn't 0xff then a new section starts. */
-            if(*payload_pos == 0xff)
-                available_length = 0;
+            raw_ts->recv_flag = true;
+            raw_ts->ts_data_length = ((payload_pos[4] << 8) | payload_pos[5]) + 6;
+            if(raw_ts->ts_data_length == 0)
+                raw_ts->ts_data_length = TSData::MAX_TS_LENGTH;
         }
-        // recv ts_packet
-        else
+    }
+
+    /* gather the remaining payload into raw_ts */
+    if(raw_ts->recv_flag)
+    {
+        available_length = 188 + ts_packet - payload_pos;
+        if(available_length > 0)
         {
+            if(raw_ts->type == TSData::PESDATA &&
+                raw_ts->recv_length + available_length > raw_ts->ts_data_length)
+            {
+                raw_ts->ts_data_length += TSData::MAX_TS_LENGTH;
+                raw_ts->ts_data = (uint8_t*)realloc(raw_ts->ts_data, raw_ts->ts_data_length);
+                raw_ts->pes->raw_data = raw_ts->ts_data;
+            }
             memcpy(raw_ts->ts_data + raw_ts->recv_length, payload_pos, available_length);
             raw_ts->recv_length += available_length;
-            available_length = 0;
         }
     }
 
@@ -283,7 +343,7 @@ Section* TSFactory::createSectoin(TSData* raw_section)
 {
     int16_t type = raw_section->PID;
     uint8_t* data = raw_section->ts_data;
-    uint16_t len = raw_section->ts_data_length;
+    uint32_t len = raw_section->ts_data_length;
     bool srbf = raw_section->scrambling_flag;
     if(type == 0x00)
     {

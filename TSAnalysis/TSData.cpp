@@ -61,31 +61,42 @@ uint32_t TSData::get_crc()
 TSData::TSData(ts_type tp)
     : PID(0xFFFF),
       type(tp),
-      ts_data_length(0),
-      ts_data(new uint8_t[MAX_TS_LENGTH]),
+      ts_data(NULL),
+      ts_data_length(TSData::MAX_TS_LENGTH),
       continuity_counter(INVALID_CC),
       discontinuity_flag(false),
       recv_length(0),
       scrambling_flag(false),
-      crc(0xFFFFFFFF)
+      crc(0xFFFFFFFF),
+      pkt_num(0),
+      pes(NULL),
+      recv_flag(false)
 {    
+    ts_data = (uint8_t*)malloc(TSData::MAX_TS_LENGTH);
+    pes = new PES(ts_data);
 }
 
 //##ModelId=555EC41A0158
 TSData::~TSData()
 {
-    delete []ts_data;
+    free(ts_data);
+}
+
+void TSData::getPES()
+{
+    pes->Reset();
+    pes->getDetail();
 }
 
 //##ModelId=555EC45001F6
 void TSData::Reset()
 {
     //PID = 0xFFFF;
-    ts_data_length = 0;
+    ts_data_length = TSData::MAX_TS_LENGTH;
     recv_length = 0;
     continuity_counter = INVALID_CC;
     discontinuity_flag = false;
     scrambling_flag = false;
     crc = 0xFFFFFFFF;
+    recv_flag = false;
 }
-

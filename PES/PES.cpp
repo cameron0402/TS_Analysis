@@ -14,8 +14,8 @@ PES::PES()
 
 }
 
-PES::PES(uint32_t max_len)
-    : raw_data(new uint8_t[max_len])
+PES::PES(uint8_t* rd)
+    : raw_data(rd)
 {
 }
 
@@ -97,8 +97,7 @@ void PES::Reset()
     PES_extension_field_length = 0;
 
     PES_packet_data = NULL;
-    raw_pes_length = 0;
-    recv_length = 0;
+    PES_packet_data_length = 0;
 }
 
 void PES::getDetail()
@@ -134,6 +133,10 @@ void PES::getDetail()
         ++idx;
 
         PES_header_data_length = raw_data[idx++];
+        PES_packet_data = raw_data + idx + PES_header_data_length;
+
+        PES_packet_data_length = PES_packet_data - raw_data;
+
         if(PTS_DTS_flags == 0x02)
         {
             PTS = (((raw_data[idx] >> 1) & 0x7) << 30) | (raw_data[idx + 1] << 22) | 
@@ -232,6 +235,13 @@ void PES::getDetail()
             }
         }
     }
-
-    PES_packet_data = raw_data + idx;
+    else if(stream_id == PADDING_STREAM)
+    {
+        PES_packet_data_length = 0;
+    }
+    else
+    {
+        PES_packet_data = raw_data + 6;
+        PES_packet_data_length = 6;
+    } 
 }

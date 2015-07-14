@@ -25,6 +25,7 @@ public:
     virtual Section* createSectoin(TSData* raw_section);
     static TSFactory* GetInstance();
     void TSGather(int pid, uint8_t* ts_packet);
+    void ESGather(int pid, uint8_t* ts_packet, std::ofstream& of);
     virtual ~TSFactory();
     
     PAT* pat;
@@ -46,6 +47,11 @@ public:
 
 private:
     TSFactory();
+    int adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
+                                bool& pcr_inv_err, bool& pcr_dis_err, bool& pcr_acu_err);
+    bool continuityCheck(uint8_t* ts_packet, TSData* raw_ts, bool& cc_err);
+    void SectionAnalysis(TSData* raw_ts);
+    void PESAnalysis(TSData* raw_ts);
     static TSFactory* _instance;
 };
 

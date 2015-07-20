@@ -84,46 +84,54 @@ PMT::StreamInfo::~StreamInfo()
 
 bool PMT::joinTo(TSFactory* sf)
 {
-    std::pair<std::set<PMT*, cmp_secp<PMT>>::iterator, bool> ret;
-    ret = sf->pmt_list.insert(this);
-    ESGInfo* ei = NULL;
-
-    if(ret.second)
+    bool upd = false;
+    std::set<PMT*, cmp_secp<PMT>>::iterator 
+        fit = sf->pmt_list.find(this);
+    if(fit != sf->pmt_list.end())
     {
-        this->getDetail();
+        if(this->version_number <= (*fit)->version_number)
+            return false;
 
+        sf->pmt_list.erase(fit);
+        upd = true;
+    }
+    sf->pmt_list.insert(this);
+    this->getDetail();
+
+    if(!upd)
+    {
+        ESGInfo* ei = NULL;
         std::list<StreamInfo*>::iterator sit;
         for(sit = stream_list.begin(); sit != stream_list.end(); ++sit)
         {
             if((*sit)->type == 0x0B)
             {
                 if(sf->raw_sarr[(*sit)->elem_PID] != NULL)
-                {
                     delete sf->raw_sarr[(*sit)->elem_PID];
-                }
+
                 sf->raw_sarr[(*sit)->elem_PID] = new TSData(TSData::SECTION);
 
                 if(ei == NULL)
-                {
                     ei = new ESGInfo(program_number);
-                }
 
                 if(ei != NULL)
                     ei->pid_list.push_back((*sit)->elem_PID);
             }
         }
+
+        if(ei != NULL)
+            sf->esg_list.push_back(ei);
+
+        Program* pg = new Program(this);
+        sf->prog_list.push_back(pg);
     }
-
-    if(ei != NULL)
-        sf->esg_list.push_back(ei);
-
-    return ret.second;
+    
+    return true;
 }
 
 bool PMT::operator==(const PMT& pt)
 {
     return program_number == pt.program_number &&
-           version_number == pt.version_number &&
            section_number == pt.section_number;
 }
 
@@ -133,13 +141,8 @@ bool PMT::operator<(const PMT& pt)
         return true;
     else if(program_number == pt.program_number)
     {
-        if(version_number < pt.version_number)
+        if(section_number < pt.section_number)
             return true;
-        else if(version_number == pt.version_number)
-        {
-            if(section_number < pt.section_number)
-                return true;
-        }
     }
     return false;
 }
@@ -250,6 +253,66 @@ void PMT::resolved()
     tmp = new TiXmlElement("CRC32");
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
+}
+
+Stream::Stream(PMT::StreamInfo* si)
+    : stream_pid(si->elem_PID),
+      stream_type(si->type),
+      scrambling(false),
+      pts_list(MAX_PTS_NUM),
+      dts_list(MAX_DTS_NUM)
+{
+    std::list<Descriptor*>::iterator dit = si->desc_list.begin();
+    for(; dit != si->desc_list.end(); ++dit)
+    {
+        if((*dit)->tag == 0x09) //CA_descriptor
+        {
+            scrambling = true;
+            break;
+        }
+    }
+}
+
+Stream::~Stream()
+{
+}
+
+Program::Program(PMT* pt)
+    : program_number(pt->program_number),
+      pcr_pid(pt->PCR_PID),
+      scrambling(false),
+      pcr_list(MAX_PCR_NUM),
+      pcr_pkt_list(MAX_PCR_NUM),
+      stream_list()
+{
+    std::list<Descriptor*>::iterator dit = pt->desc_list.begin();
+    for(; dit != pt->desc_list.end(); ++dit)
+    {
+        if((*dit)->tag == 0x09) //CA_descriptor
+        {
+            scrambling = true;
+            break;
+        }
+    }
+
+    std::list<PMT::StreamInfo*>::iterator si = pt->stream_list.begin();
+    for(; si != pt->stream_list.end(); ++si)
+    {
+        Stream* sm = new Stream(*si);
+        stream_list.push_back(sm);
+        if(scrambling)
+        {
+            sm->scrambling = true;
+        }
+    }
+}
+
+Program::~Program()
+{
+    std::list<Stream*>::iterator si = stream_list.begin();
+    for(; si != stream_list.end(); ++si)
+        delete (*si);
+    stream_list.clear();
 }
 
 

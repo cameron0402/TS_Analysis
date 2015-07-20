@@ -77,87 +77,47 @@ int TSFactory::adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
                                         bool& pcr_inv_err, bool& pcr_dis_err, bool& pcr_acu_err)
 {
     int adp_len = 0;
-    uint8_t adp_ctr = (ts_packet[3] & 0x30) >> 4;
-    if(adp_ctr == 0x02 || adp_ctr == 0x03)
+    AdaptationField* adf = new AdaptationField(ts_packet + 4);
+    if(adf->PCR_flag)
     {
-        AdaptationField* adf = new AdaptationField(ts_packet + 4);
-
-        if(adf->PCR_flag)
+        int64_t pcr = adf->program_clock_reference_base * 300 + adf->program_clock_reference_extension;
+        std::list<Program*>::iterator pit = prog_list.begin();
+        for(; pit != prog_list.end(); ++pit)
         {
-            uint64_t pcr = adf->program_clock_reference_base * 300 + adf->program_clock_reference_extension;
-            std::list<PCR*>::iterator pit = pcr_list.begin();
-            for(; pit != pcr_list.end(); ++pit)
+            if((*pit)->pcr_pid == raw_ts->PID)
             {
-                if((*pit)->pid == raw_ts->PID)
-                    break;
-            }
-
-            if(pit == pcr_list.end())
-            {
-                PCR* p = new PCR(raw_ts->PID, 1000);
-                p->st_pkt_idx = pkt_idx;
-                p->push_pcr(pcr);
-                pcr_list.push_back(p);
-            }
-            else
-            {
-                int64_t pcr_pre = (*pit)->time_list.back();
-                int64_t pcr_intv = pcr - pcr_pre;
-
-                uint32_t pkt_num_pre, pkt_num;
-                int64_t pcr_intv_pre, pcr_intv_exp;
-
-                double inv = double(pcr_intv) / 27000;
-                (*pit)->push_pcr(pcr);
-                if((*pit)->ed_pkt_idx == 0)
+                int idx = (*pit)->pcr_list.Size() - 1;
+                if(idx > 0)
                 {
-                    (*pit)->ed_pkt_idx = pkt_idx;
-                    (*pit)->intv = pcr_intv;
-                }
-                else
-                {
-                    pkt_num_pre = (*pit)->ed_pkt_idx - (*pit)->st_pkt_idx;
-                    pcr_intv_pre = (*pit)->intv;
+                    int64_t pcr_pre = (*pit)->pcr_list[idx];
+                    int64_t pcr_intv = pcr - pcr_pre;
+                    double inv = double(pcr_intv) / 27000;
+                    int64_t pcr_excp_intv = ((*pit)->pcr_list[idx] - (*pit)->pcr_list[idx - 1]) *
+                                            (pkt_idx - (*pit)->pcr_pkt_list[idx]) /
+                                            ((*pit)->pcr_pkt_list[idx] - (*pit)->pcr_pkt_list[idx - 1]);
 
-                    pkt_num = pkt_idx - (*pit)->ed_pkt_idx;
-                    pcr_intv_exp = pcr_intv_pre * pkt_num / pkt_num_pre;
-
-                    (*pit)->st_pkt_idx = (*pit)->ed_pkt_idx;
-                    (*pit)->ed_pkt_idx = pkt_idx;
-                    (*pit)->intv = pcr_intv;
-
-                    if(pcr_intv_exp - pcr_intv >= 14 || pcr_intv_exp - pcr_intv <= -14)
-                    {
+                    if(pcr_excp_intv - pcr_intv >= 14 || pcr_excp_intv - pcr_intv <= -14)
                         pcr_acu_err = true;
-                    }
-                }
 
-                if(inv > 100 && !adf->discontinuity_indicator)
-                {
-                    pcr_dis_err = true;
-                }
+                    if(inv > 100 && !adf->discontinuity_indicator)
+                        pcr_dis_err = true;
 
-                if(inv > 40)
-                {
-                    pcr_inv_err = true;
+                    if(inv > 40)
+                        pcr_inv_err = true;
                 }
+                (*pit)->pcr_list.Push(pcr);
+                (*pit)->pcr_pkt_list.Push(pkt_idx);
             }
-
         }
-
-        if(adf->discontinuity_indicator)
-        {
-            raw_ts->discontinuity_flag = true;
-        }
-
-        adp_len = 5 + adf->adaptation_field_length;
-
-        delete adf;
     }
-    else
+
+    if(adf->discontinuity_indicator)
     {
-        adp_len = 4;
+        raw_ts->discontinuity_flag = true;
     }
+    adp_len = 5 + adf->adaptation_field_length;
+
+    delete adf;
 
     return adp_len;
 }
@@ -195,7 +155,7 @@ bool TSFactory::continuityCheck(uint8_t* ts_packet, TSData* raw_ts, bool& cc_err
 void TSFactory::SectionAnalysis(TSData* raw_ts)
 {
     Section* sec = NULL;
-    raw_ts->get_crc();
+    //raw_ts->get_crc();
     try
     {
         sec = createSectoin(raw_ts);
@@ -219,6 +179,40 @@ void TSFactory::SectionAnalysis(TSData* raw_ts)
 
 void TSFactory::PESAnalysis(TSData* raw_ts)
 {
+    raw_ts->getPES();
+    if(raw_ts->pes->PTS_DTS_flags & 0x02)
+    {
+        std::list<Program*>::iterator pit = prog_list.begin();
+        for(; pit != prog_list.end(); ++pit)
+        {
+            std::list<Stream*>::iterator sit = (*pit)->stream_list.begin();
+            for(; sit != (*pit)->stream_list.end(); ++sit)
+            {
+                if((*sit)->stream_pid == raw_ts->PID)
+                {
+                    if(!(*sit)->scrambling)
+                    {
+                        (*sit)->pts_list.Push(raw_ts->pes->PTS);
+                        int idx = (*sit)->pts_list.Size() - 1;
+                        if(idx > 0)
+                        {
+                            int64_t inv= (*sit)->pts_list[idx] - (*sit)->pts_list[idx - 1];
+                            double pts_inv = (double)(inv / 90);
+                            if(pts_inv > 700 || pts_inv < -700)
+                            {
+                                std::cout << "pts error!" << std::endl;
+                            }
+                        }
+                        
+                        if(raw_ts->pes->PTS_DTS_flags & 0x01)
+                        {
+                            (*sit)->dts_list.Push(raw_ts->pes->DTS);
+                        }
+                    }                   
+                }
+            }
+        }
+    }
     return ;
 }
 
@@ -257,7 +251,11 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
     raw_ts->PID = ((ts_packet[1] & 0x1F) << 8) | ts_packet[2];
 
     /* Analysis the adaptation_field if present */
-    payload_pos = ts_packet + adaptationFieldAnalysis(ts_packet, raw_ts, pcr_inv_err, pcr_dis_err, pcr_acu_err);
+    uint8_t adp_ctr = (ts_packet[3] & 0x30) >> 4;
+    if(adp_ctr == 0x02 || adp_ctr == 0x03)
+        payload_pos = ts_packet + adaptationFieldAnalysis(ts_packet, raw_ts, pcr_inv_err, pcr_dis_err, pcr_acu_err);
+    else
+        payload_pos = ts_packet + 4;
 
     /* Continuity check */
     if(!continuityCheck(ts_packet, raw_ts, cc_err))
@@ -452,7 +450,7 @@ TSFactory::TSFactory()
       esg_list(),
       esg_stable_list(),
       raw_sarr(),
-      pcr_list(),
+      prog_list(),
       pkt_idx(0)
 {
     int i;
@@ -537,11 +535,11 @@ TSFactory::~TSFactory()
         }
     }
 
-    std::list<PCR*>::iterator pcit = pcr_list.begin();
-    for(; pcit != pcr_list.end(); ++pcit)
+    std::list<Program*>::iterator pgit = prog_list.begin();
+    for(; pgit != prog_list.end(); ++pgit)
     {
-        delete (*pcit);
+        delete (*pgit);
     }
-    pcr_list.clear();
+    prog_list.clear();
 }
 

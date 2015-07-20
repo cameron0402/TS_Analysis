@@ -37,7 +37,6 @@ void utc_to_hms(uint8_t* utc, char* str);
 //deal with the code translation
 int coding_string_to_gb(uint8_t *p, uint8_t* buf_gb, int len);
 
-
 template<class T>
 struct cmp_secp
 {
@@ -46,5 +45,93 @@ struct cmp_secp
         return (*secp1) < (*secp2);
     }
 };
+
+template<class T>
+class LimitQueue
+{
+public:
+    LimitQueue(int sz);
+    ~LimitQueue();
+
+    void Push(T& elem); 
+    void Pop();
+    int Size();
+    int Capacity();
+
+    T& Front();
+    T& operator[](int idx);
+
+private:
+    std::vector<T> vec;
+    int capacity;
+    int size;
+};
+
+template<class T>
+LimitQueue<T>::LimitQueue(int sz)
+    : vec(),
+    capacity(sz > 0 ? sz : 0),
+    size(0)
+{
+}
+
+template<class T>
+LimitQueue<T>::~LimitQueue()
+{
+}
+
+template<class T>
+int LimitQueue<T>::Size()
+{
+    return size;
+}
+
+template<class T>
+int LimitQueue<T>::Capacity()
+{
+    return capacity;
+}
+
+template<class T>
+void LimitQueue<T>::Push(T& elem)
+{
+    if(capacity == 0)
+        return ;
+
+    if(size == capacity)
+    {
+        Pop();
+    }
+    vec.push_back(elem);
+    ++size;
+}
+
+template<class T>
+void LimitQueue<T>::Pop()
+{
+    if(vec.empty())
+        return ;
+
+    vec.erase(vec.begin());
+    --size;
+}
+
+template<class T>
+T& LimitQueue<T>::Front()
+{
+    if(!vec.empty())
+        return vec.front();
+
+    throw std::out_of_range("Empty Queue!\n");
+}
+
+template<class T>
+T& LimitQueue<T>::operator[](int idx)
+{
+    if(idx >= 0 && idx < size)
+        return vec[idx];
+
+    throw std::out_of_range("Invalidate Index!\n");
+}
 
 #endif

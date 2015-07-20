@@ -139,25 +139,25 @@ void PES::getDetail()
 
         if(PTS_DTS_flags == 0x02)
         {
-            PTS = (((raw_data[idx] >> 1) & 0x7) << 30) | (raw_data[idx + 1] << 22) | 
+            PTS = ((((int64_t)raw_data[idx] >> 1) & 0x7) << 30) | (raw_data[idx + 1] << 22) | 
                   ((raw_data[idx + 2] >> 1) << 15) | (raw_data[idx + 3] << 8) | (raw_data[idx + 4] >> 1);
             idx += 5;
         }
 
         if(PTS_DTS_flags == 0x03)
         {
-            PTS = (((raw_data[idx] >> 1) & 0x7) << 30) | (raw_data[idx + 1] << 22) | 
+            PTS = ((((int64_t)raw_data[idx] >> 1) & 0x7) << 30) | (raw_data[idx + 1] << 22) | 
                   ((raw_data[idx + 2] >> 1) << 15) | (raw_data[idx + 3] << 8) | (raw_data[idx + 4] >> 1);
             idx += 5;
 
-            DTS = (((raw_data[idx] >> 1) & 0x7) << 30) | (raw_data[idx + 1] << 22) | 
+            DTS = ((((int64_t)raw_data[idx] >> 1) & 0x7) << 30) | (raw_data[idx + 1] << 22) | 
                   ((raw_data[idx + 2] >> 1) << 15) | (raw_data[idx + 3] << 8) | (raw_data[idx + 4] >> 1);
             idx += 5;
         }
 
         if(ESCR_flag)
         {
-            ESCR_base = (((raw_data[idx] >> 3) & 0x7) << 30) | ((raw_data[idx] & 0x3) << 28) | (raw_data[idx + 1] << 20) | 
+            ESCR_base = ((((int64_t)raw_data[idx] >> 3) & 0x7) << 30) | ((raw_data[idx] & 0x3) << 28) | (raw_data[idx + 1] << 20) | 
                         ((raw_data[idx + 2] >> 3) << 15) | ((raw_data[idx + 2] & 0x03) << 13) | (raw_data[idx + 3] << 5) |
                         (raw_data[idx + 4] >> 3);
             ESCR_extension = ((raw_data[idx + 4] & 0x03) << 7) | (raw_data[idx + 5] >> 1);  

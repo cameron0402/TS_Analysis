@@ -3,43 +3,28 @@
 #include "../Section.h"
 class Descriptor;
 
-//##ModelId=555569F70169
+const int MAX_PCR_NUM = 1000;
+const int MAX_PTS_NUM = MAX_PCR_NUM;
+const int MAX_DTS_NUM = MAX_PCR_NUM;
+
 class PMT : public Section
 {
   public:
-    //##ModelId=55558221017D
     class StreamInfo
     {
       public:
-        //##ModelId=555D7D58002F
         StreamInfo();
-
-        //##ModelId=555D7D6A03E1
         StreamInfo(uint8_t* data);
-
-        //##ModelId=555D7D6D016C
-        //##ModelId=555D7D6D016C
         virtual ~StreamInfo();
 
-        // stream_type
-        //##ModelId=55558250017E
         uint8_t type;
-        // elementary_PID
-        //##ModelId=5555826F0328
         uint16_t elem_PID;
-        // ES_info_length
-        //##ModelId=5555829203E6
         uint16_t info_length;
-        //##ModelId=555582AE03CD
         std::list<Descriptor*> desc_list;
     };
 
-    //##ModelId=55556B720001
     PMT();
-
-    //##ModelId=55556B820369
     PMT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
-    //##ModelId=5558288B00A9
     virtual ~PMT();
 
     virtual bool joinTo(TSFactory* sf);
@@ -48,28 +33,47 @@ class PMT : public Section
     bool operator ==(const PMT& pt);
     bool operator <(const PMT& pt);
 
-    //##ModelId=5562969D029A
     uint16_t program_number;
-    //##ModelId=5562989F030C
     bool current_next_indicator;
-    //##ModelId=556296B303D2
     uint8_t version_number;
-    //##ModelId=556296DA0299
     uint8_t section_number;
-    //##ModelId=5562971A00DC
     uint8_t last_section_number;
 
-    //##ModelId=55556A4E0217
     uint16_t PCR_PID;
-    //##ModelId=55556A820381
     uint16_t program_info_length;
-    //##ModelId=55556ACF0381
     std::list<StreamInfo*> stream_list;
-    //##ModelId=555D747E003D
     std::list<Descriptor*> desc_list;
     
-    //##ModelId=5562973302FB
     uint32_t crc32;
+};
+
+class Stream
+{
+public:
+    Stream(PMT::StreamInfo* si);
+    ~Stream();
+
+    uint16_t stream_pid;
+    uint8_t stream_type;
+    bool scrambling;
+
+    LimitQueue<int64_t> pts_list;
+    LimitQueue<int64_t> dts_list;
+};
+
+class Program
+{
+public:
+    Program(PMT* pt);
+    ~Program();
+
+    uint16_t program_number;
+    uint16_t pcr_pid;
+    bool scrambling;
+ 
+    LimitQueue<int64_t> pcr_list;
+    LimitQueue<uint32_t> pcr_pkt_list; 
+    std::list<Stream*> stream_list;
 };
 
 #endif /* PMT_H_HEADER_INCLUDED_AAAA7F38 */

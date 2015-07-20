@@ -2,7 +2,6 @@
 #define _TS_FACTORY_H_
 
 #include "../def.h"
-#include "../PES/PCR.h"
 #include "../Section/Section.h"
 #include "../Section/PSI_SI/BAT.h"
 #include "../Section/PSI_SI/CAT.h"
@@ -26,7 +25,6 @@ public:
     static TSFactory* GetInstance();
     void TSGather(int pid, uint8_t* ts_packet);
     void ESGather(int pid, uint8_t* ts_packet, std::ofstream& of);
-    virtual ~TSFactory();
     
     PAT* pat;
     std::set<PMT*, cmp_secp<PMT>> pmt_list;
@@ -42,16 +40,21 @@ public:
 
     TSData* raw_sarr[MAX_PID_NUM];
 
-    std::list<PCR*> pcr_list; 
+    std::list<Program*> prog_list;
     uint32_t pkt_idx;
 
 private:
     TSFactory();
+    TSFactory(const TSFactory&);
+    TSFactory& operator=(const TSFactory&);
+    ~TSFactory();
+
     int adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
                                 bool& pcr_inv_err, bool& pcr_dis_err, bool& pcr_acu_err);
     bool continuityCheck(uint8_t* ts_packet, TSData* raw_ts, bool& cc_err);
     void SectionAnalysis(TSData* raw_ts);
     void PESAnalysis(TSData* raw_ts);
+
     static TSFactory* _instance;
 };
 

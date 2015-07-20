@@ -33,8 +33,8 @@ public:
     uint8_t PES_header_data_length; //8 bit
 
     //PTS_DTS_flag != 00
-    uint64_t PTS; // 33 bit
-    uint64_t DTS; // 33 bit
+    int64_t PTS; // 33 bit
+    int64_t DTS; // 33 bit
 
     //ESCR_flag == true
     uint64_t ESCR_base; // 33 bit

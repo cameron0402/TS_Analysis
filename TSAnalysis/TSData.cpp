@@ -69,6 +69,11 @@ TSData::TSData(ts_type tp)
       scrambling_flag(false),
       crc(0xFFFFFFFF),
       pkt_num(0),
+      pcr_pid(0xFFFF),
+      pcr_pkt_list(MAX_PCR_NUM),
+      max_bit_rate(0),
+      min_bit_rate(0),
+      cur_bit_rate(0),
       pes(NULL),
       recv_flag(false)
 {    

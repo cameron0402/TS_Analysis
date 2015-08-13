@@ -2,6 +2,7 @@
 #define _TS_FACTORY_H_
 
 #include "../def.h"
+#include "TSData.h"
 #include "../Section/Section.h"
 #include "../Section/PSI_SI/BAT.h"
 #include "../Section/PSI_SI/CAT.h"
@@ -14,12 +15,43 @@
 #include "../Section/PSI_SI/TOT.h"
 #include "../Section/DSMCC/DsmccSection.h"   
 
-class TSData;
+class Stream
+{
+public:
+    Stream(PMT::StreamInfo* si);
+    ~Stream();
+
+    const struct stream_type_table* stream_type;
+    uint16_t stream_pid;
+    bool scrambling;
+
+    LimitQueue<int64_t> pts_list;
+    LimitQueue<int64_t> dts_list;
+};
+
+class ProgInfo
+{
+public:
+    ProgInfo(uint8_t* data);
+    virtual ~ProgInfo();
+
+    void setInfo(PMT* pmt);
+
+    uint16_t program_number;
+    uint16_t program_map_PID;
+
+    uint16_t pcr_pid;
+    bool scrambling;
+
+    LimitQueue<int64_t> pcr_list;
+    LimitQueue<uint32_t> pcr_pkt_list; 
+    std::list<Stream*> stream_list;
+};
 
 class TSFactory
 {
 public:
-
+    ~TSFactory();
     bool addSection(Section* section);
     virtual Section* createSectoin(TSData* raw_section);
     static TSFactory* GetInstance();
@@ -39,15 +71,17 @@ public:
     std::list<ESGInfo*> esg_stable_list;
 
     TSData* raw_sarr[MAX_PID_NUM];
+    //std::map<uint16_t, TSData*> raw_sarr;
 
-    std::list<Program*> prog_list;
-    uint32_t pkt_idx;
+    uint32_t pkt_num;
+    double max_bit_rate;
+    double min_bit_rate;
+    double cur_bit_rate;
 
 private:
     TSFactory();
     TSFactory(const TSFactory&);
     TSFactory& operator=(const TSFactory&);
-    ~TSFactory();
 
     int adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
                                 bool& pcr_inv_err, bool& pcr_dis_err, bool& pcr_acu_err);

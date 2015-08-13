@@ -116,7 +116,9 @@ bool SDT::joinTo(TSFactory* sf)
     std::pair<std::set<SDT*, cmp_secp<SDT>>::iterator, bool> ret;
     ret = sf->sdt_list.insert(this);
     if(ret.second)
+    {
         this->getDetail();
+    }
     return ret.second;
 }
 
@@ -172,8 +174,6 @@ void SDT::resolved()
     tmp = new TiXmlElement("original_network_id");
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
-
-    
 
     if(!service_list.empty())
     {

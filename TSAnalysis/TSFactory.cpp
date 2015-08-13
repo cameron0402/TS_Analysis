@@ -2,6 +2,82 @@
 #include "TSData.h"
 #include "PES/AdaptationField.h"
 
+Stream::Stream(PMT::StreamInfo* si)
+    : stream_pid(si->elem_PID),
+      scrambling(false),
+      pts_list(MAX_PTS_NUM),
+      dts_list(MAX_DTS_NUM)
+{
+    int i = 0;
+    for(;;i++)
+    {
+        if(STREAM_TYPE_TABLE[i].stream_type == 0xFF)
+            break;
+        if(STREAM_TYPE_TABLE[i].stream_type == si->type)
+        {
+            stream_type = &STREAM_TYPE_TABLE[i];
+            break;
+        }
+    }
+    std::list<Descriptor*>::iterator dit = si->desc_list.begin();
+    for(; dit != si->desc_list.end(); ++dit)
+    {
+        if((*dit)->tag == 0x09) //CA_descriptor
+        {
+            scrambling = true;
+            break;
+        }
+    }
+}
+
+Stream::~Stream()
+{
+}
+
+ProgInfo::ProgInfo(uint8_t* data)
+    : program_number((data[0] << 8) | data[1]),
+      program_map_PID(((data[2] & 0x1F) << 8) | data[3]),
+      pcr_pid(0x1FFF),
+      scrambling(false),
+      pcr_list(MAX_PCR_NUM),
+      pcr_pkt_list(MAX_PCR_NUM),
+      stream_list()
+{
+}
+
+void ProgInfo::setInfo(PMT* pt)
+{
+    pcr_pid = pt->PCR_PID;
+    std::list<Descriptor*>::iterator dit = pt->desc_list.begin();
+    for(; dit != pt->desc_list.end(); ++dit)
+    {
+        if((*dit)->tag == 0x09) //CA_descriptor
+        {
+            scrambling = true;
+            break;
+        }
+    }
+
+    std::list<PMT::StreamInfo*>::iterator si = pt->stream_list.begin();
+    for(; si != pt->stream_list.end(); ++si)
+    {
+        Stream* sm = new Stream(*si);
+        stream_list.push_back(sm);
+        if(scrambling)
+        {
+            sm->scrambling = true;
+        }
+    }
+}
+
+ProgInfo::~ProgInfo()
+{
+    std::list<Stream*>::iterator si = stream_list.begin();
+    for(; si != stream_list.end(); ++si)
+        delete (*si);
+    stream_list.clear();
+}
+
 TSFactory* TSFactory::_instance = NULL;
 
 //##ModelId=5555501D00F6
@@ -81,32 +157,48 @@ int TSFactory::adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
     if(adf->PCR_flag)
     {
         int64_t pcr = adf->program_clock_reference_base * 300 + adf->program_clock_reference_extension;
-        std::list<Program*>::iterator pit = prog_list.begin();
-        for(; pit != prog_list.end(); ++pit)
+        if(pat != NULL)
         {
-            if((*pit)->pcr_pid == raw_ts->PID)
+            std::list<ProgInfo*>::iterator pit = pat->prog_list.begin();
+            for(; pit != pat->prog_list.end(); ++pit)
             {
-                int idx = (*pit)->pcr_list.Size() - 1;
-                if(idx > 0)
+                if((*pit)->pcr_pid == raw_ts->PID)
                 {
-                    int64_t pcr_pre = (*pit)->pcr_list[idx];
-                    int64_t pcr_intv = pcr - pcr_pre;
-                    double inv = double(pcr_intv) / 27000;
-                    int64_t pcr_excp_intv = ((*pit)->pcr_list[idx] - (*pit)->pcr_list[idx - 1]) *
-                                            (pkt_idx - (*pit)->pcr_pkt_list[idx]) /
-                                            ((*pit)->pcr_pkt_list[idx] - (*pit)->pcr_pkt_list[idx - 1]);
+                    int idx = (*pit)->pcr_list.Size() - 1;
+                    if(idx > 0)
+                    {
+                        int64_t pcr_pre = (*pit)->pcr_list[idx];
+                        int64_t pcr_intv = pcr - pcr_pre;
+                        double inv = double(pcr_intv) / 27000;
+                        int64_t pcr_excp_intv = ((*pit)->pcr_list[idx] - (*pit)->pcr_list[idx - 1]) *
+                                                (pkt_num - (*pit)->pcr_pkt_list[idx]) /
+                                                ((*pit)->pcr_pkt_list[idx] - (*pit)->pcr_pkt_list[idx - 1]);
 
-                    if(pcr_excp_intv - pcr_intv >= 14 || pcr_excp_intv - pcr_intv <= -14)
-                        pcr_acu_err = true;
+                        if(pcr_excp_intv - pcr_intv >= 14 || pcr_excp_intv - pcr_intv <= -14)
+                            pcr_acu_err = true;
 
-                    if(inv > 100 && !adf->discontinuity_indicator)
-                        pcr_dis_err = true;
+                        if(inv > 100 && !adf->discontinuity_indicator)
+                            pcr_dis_err = true;
 
-                    if(inv > 40)
-                        pcr_inv_err = true;
+                        if(inv > 40)
+                            pcr_inv_err = true;
+
+                        if(idx > 10)
+                        {
+                            cur_bit_rate = (pkt_num - (*pit)->pcr_pkt_list[idx - 10]) * 188 * 8 / 
+                                           ((pcr - (*pit)->pcr_list[idx - 10]) / (double)27000);
+                            if(cur_bit_rate > 1)
+                            {
+                                if(cur_bit_rate > max_bit_rate)
+                                    max_bit_rate = cur_bit_rate;
+                                if(cur_bit_rate < min_bit_rate)
+                                    min_bit_rate = cur_bit_rate; 
+                            }                             
+                        }                                         
+                    }
+                    (*pit)->pcr_list.Push(pcr);
+                    (*pit)->pcr_pkt_list.Push(pkt_num);
                 }
-                (*pit)->pcr_list.Push(pcr);
-                (*pit)->pcr_pkt_list.Push(pkt_idx);
             }
         }
     }
@@ -155,7 +247,6 @@ bool TSFactory::continuityCheck(uint8_t* ts_packet, TSData* raw_ts, bool& cc_err
 void TSFactory::SectionAnalysis(TSData* raw_ts)
 {
     Section* sec = NULL;
-    //raw_ts->get_crc();
     try
     {
         sec = createSectoin(raw_ts);
@@ -182,8 +273,11 @@ void TSFactory::PESAnalysis(TSData* raw_ts)
     raw_ts->getPES();
     if(raw_ts->pes->PTS_DTS_flags & 0x02)
     {
-        std::list<Program*>::iterator pit = prog_list.begin();
-        for(; pit != prog_list.end(); ++pit)
+        if(pat == NULL)
+            return ;
+
+        std::list<ProgInfo*>::iterator pit = pat->prog_list.begin();
+        for(; pit != pat->prog_list.end(); ++pit)
         {
             std::list<Stream*>::iterator sit = (*pit)->stream_list.begin();
             for(; sit != (*pit)->stream_list.end(); ++sit)
@@ -229,10 +323,19 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
     if(raw_sarr[pid] == NULL)
     {
         raw_sarr[pid] = new TSData(TSData::PESDATA);
+        raw_sarr[pid]->PID = pid;
     }
 
-    ++pkt_idx;
+    ++pkt_num;
     ++raw_sarr[pid]->pkt_num;
+
+    if(raw_sarr[pid]->pcr_pid == 0xFFFF)
+    {
+        if(pat != NULL && !pat->prog_list.empty())
+        {
+            raw_sarr[pid]->pcr_pid = pat->prog_list.front()->pcr_pid;
+        }
+    }
 
     if(pid == 0x1FFF)
     {
@@ -263,10 +366,10 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
         return ;
     }
 
-    /* Return if no payload in the TS packet */
-    if(!(ts_packet[3] & 0x10))
+    /* scrambling flag */
+    if(ts_packet[3] & 0xC0)
     {
-        return ;
+        raw_ts->scrambling_flag = true;
     }
 
     /* Unit start -> deal the last Section or PES first, then start gather a new one */
@@ -391,7 +494,7 @@ Section* TSFactory::createSectoin(TSData* raw_section)
 
     if(pat != NULL)
     {
-        std::list<PAT::ProgInfo*>::iterator pit;
+        std::list<ProgInfo*>::iterator pit;
         for(pit = pat->prog_list.begin(); pit != pat->prog_list.end(); ++pit)
         {
             if((*pit)->program_number != 0 && type == (*pit)->program_map_PID)
@@ -450,8 +553,10 @@ TSFactory::TSFactory()
       esg_list(),
       esg_stable_list(),
       raw_sarr(),
-      prog_list(),
-      pkt_idx(0)
+      pkt_num(0),
+      max_bit_rate(0),
+      min_bit_rate(0),
+      cur_bit_rate(0)
 {
     int i;
     for(i = 0; i < 0x1F; ++i)
@@ -535,11 +640,6 @@ TSFactory::~TSFactory()
         }
     }
 
-    std::list<Program*>::iterator pgit = prog_list.begin();
-    for(; pgit != prog_list.end(); ++pgit)
-    {
-        delete (*pgit);
-    }
-    prog_list.clear();
+    _instance = NULL;
 }
 

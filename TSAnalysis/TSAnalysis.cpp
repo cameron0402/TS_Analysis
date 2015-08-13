@@ -2,74 +2,12 @@
 #include "../Section/PSI_SI/PAT.h"
 #include "../Section/PSI_SI/PMT.h"
 
-char* section_desc[] = 
-{
-    // 0x00 - 0x1F
-    "PAT", "CAT", "TSDT", "", "", "", "",
-    "", "", "", "", "", "", "", "", "", 
-    "NIT", "SDT/BAT", "EIT", "RST", "TDT/TOT", "", "", "", 
-    "", "", "", "", "", "", "DIT", "SIT",
-
-    // depends on other section
-    "PMT"
-};
-
-char* stream_desc[] = 
-{
-    // 0x00 - 0x1E
-    "ITU-T | ISO/IEC Reserved",
-    "ISO/IEC 11172-2 Video",
-    "ITU-T Rec. H.262 | ISO/IEC 13818-2 Video or ISO/IEC 11172-2 constrained parameter video stream",
-    "ISO/IEC 11172-3 Audio",
-    "ISO/IEC 13818-3 Audio",
-    "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 private_sections",
-    "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 PES packets containing private data",
-    "ISO/IEC 13522 MHEG",
-    "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 Annex A DSM-CC",
-    "ITU-T Rec. H.222.1",
-    "ISO/IEC 13818-6 type A",
-    "ISO/IEC 13818-6 type B",
-    "ISO/IEC 13818-6 type C",
-    "ISO/IEC 13818-6 type D",
-    "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 auxiliary",
-    "ISO/IEC 13818-7 Audio with ADTS transport syntax",
-    "ISO/IEC 14496-2 Visual",
-    "ISO/IEC 14496-3 Audio with the LATM transport syntax as defined in ISO/IEC 14496-3/Amd.1",
-    "ISO/IEC 14496-1 SL-packetized stream or FlexMux stream carried in PES packets",
-    "ISO/IEC 14496-1 SL-packetized stream or FlexMux stream carried in ISO/IEC 14496_sections",
-    "ISO/IEC 13818-6 Synchronized Download Protocol",
-    "Metadata carried in PES packets",
-    "Metadata carried in metadata_sections",
-    "Metadata carried in ISO/IEC 13818-6 Data Carousel",
-    "Metadata carried in ISO/IEC 13818-6 Object Carousel",
-    "Metadata carried in ISO/IEC 13818-6 Synchronized Download Protocol",
-    "IPMP stream (defined in ISO/IEC 13818-11, MPEG-2 IPMP)",
-    "AVC video stream as defined in ITU-T Rec. H.264 | ISO/IEC 14496-10 Video",
-    "ISO/IEC 14496-3 Audio, without using any additional transport syntax, such as DST, ALS and SLS",
-    "ISO/IEC 14496-17 Text",
-    "Auxiliary video stream as defined in ISO/IEC 23002-3",
-
-    // 0x1F - 0x7E
-    "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 Reserved",
-
-    // 0x7F
-    "IPMP stream",
-
-    //0x80 - 0xFF
-    "User Private"
-};
-
-TSAnalysis::TSAnalysis()
-{
-
-}
-
 TSAnalysis::TSAnalysis(char* infile)
     : ts_err(),
       err_xml(new TiXmlElement("ERROR_LOG")),
-      pmt_set(false),
       in_ts_file(infile),
-      inf(infile, std::ifstream::binary)
+      inf(infile, std::ifstream::binary),
+      analyzing(false)
 {
 }
 
@@ -78,7 +16,11 @@ TSAnalysis::~TSAnalysis()
 {
     if(err_xml != NULL)
         delete err_xml;
-       
+    if(sf != NULL)
+    {
+        delete sf;
+        sf = NULL;
+    }
     inf.close();
 }
 
@@ -142,26 +84,7 @@ int TSAnalysis::get_packet_size(const uint8_t* buf, int size, int* index = NULL)
     return -1;
 }
 
-//bool TSAnalysis::is_section_pkt(uint16_t pid)
-//{
-//    if(!pmt_set)
-//    {
-//        if(sf->pat != NULL)
-//        {
-//            std::list<PAT::ProgInfo*>::iterator pit;
-//            for(pit = sf->pat->prog_list.begin(); pit != sf->pat->prog_list.end(); pit++)
-//            {
-//                ps[(*pit)->program_map_PID].type = SECTION; 
-//                ps[(*pit)->program_map_PID].description = section_desc[0x20];
-//            }
-//            pmt_set = true;
-//        }
-//    }
-//   
-//    return ps[pid].type == SECTION;   
-//}
-
-int TSAnalysis::synchronous(int pkt_sz)
+int TSAnalysis::synchronous()
 {
     int idx = 0;
     char buf[TS_MAX_PACKET_SIZE * 6] = {0};
@@ -242,12 +165,14 @@ void TSAnalysis::ts_analysis()
     inf.seekg(0, inf.beg);
     inf.read((char*)test_buf, TS_MAX_PACKET_SIZE * 6);
 
+    analyzing = true;
+
     int st_idx = 0;
-    int pkt_sz = 0;
     pkt_sz = get_packet_size(test_buf, TS_MAX_PACKET_SIZE * 6, &st_idx);
     if(pkt_sz == -1)
     {
         std::cout << "can't find the sync-byte and can't analysis the TS!\n";
+        analyzing = false;
         return ;
     }
 
@@ -267,7 +192,7 @@ void TSAnalysis::ts_analysis()
         }
         catch(SyncErr&)
         {
-            int idx = synchronous(pkt_sz);
+            int idx = synchronous();
             if(idx == -1)
             {
                 std::cout << "fatal error! can't find sync-byte, analysis will terminate..." << std::endl;
@@ -485,4 +410,6 @@ void TSAnalysis::ts_analysis()
 
         }   
     }
+
+    analyzing = false;
 }

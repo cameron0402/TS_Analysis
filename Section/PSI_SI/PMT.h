@@ -3,10 +3,6 @@
 #include "../Section.h"
 class Descriptor;
 
-const int MAX_PCR_NUM = 1000;
-const int MAX_PTS_NUM = MAX_PCR_NUM;
-const int MAX_DTS_NUM = MAX_PCR_NUM;
-
 class PMT : public Section
 {
   public:
@@ -45,35 +41,6 @@ class PMT : public Section
     std::list<Descriptor*> desc_list;
     
     uint32_t crc32;
-};
-
-class Stream
-{
-public:
-    Stream(PMT::StreamInfo* si);
-    ~Stream();
-
-    uint16_t stream_pid;
-    uint8_t stream_type;
-    bool scrambling;
-
-    LimitQueue<int64_t> pts_list;
-    LimitQueue<int64_t> dts_list;
-};
-
-class Program
-{
-public:
-    Program(PMT* pt);
-    ~Program();
-
-    uint16_t program_number;
-    uint16_t pcr_pid;
-    bool scrambling;
- 
-    LimitQueue<int64_t> pcr_list;
-    LimitQueue<uint32_t> pcr_pkt_list; 
-    std::list<Stream*> stream_list;
 };
 
 #endif /* PMT_H_HEADER_INCLUDED_AAAA7F38 */

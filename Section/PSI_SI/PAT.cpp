@@ -2,12 +2,6 @@
 #include "../../TSAnalysis/TSFactory.h"
 #include "../../TSAnalysis/TSData.h"
 
-//##ModelId=55555EB90262
-PAT::PAT()
-{
-}
-
-//##ModelId=55555EC7002C
 PAT::PAT(uint8_t* data, uint16_t len, uint32_t crc) 
     : Section(data, len),
       transport_stream_id((data[3] << 8) | data[4]), 
@@ -28,7 +22,6 @@ PAT::PAT(uint8_t* data, uint16_t len, uint32_t crc)
     }
 }
 
-//##ModelId=55582871031A
 PAT::~PAT()
 {
     std::list<ProgInfo*>::iterator pit;
@@ -37,23 +30,6 @@ PAT::~PAT()
         delete (*pit);
     }
     prog_list.clear();
-}
-
-//##ModelId=555D78E90265
-PAT::ProgInfo::ProgInfo()
-{
-}
-
-//##ModelId=555D78EB0320
-PAT::ProgInfo::ProgInfo(uint8_t* data)
-    : program_number((data[0] << 8) | data[1]),
-      program_map_PID(((data[2] & 0x1F) << 8) | data[3])
-{
-}
-
-//##ModelId=555D78EE02D5
-PAT::ProgInfo::~ProgInfo()
-{
 }
 
 void PAT::getDetail()
@@ -157,4 +133,3 @@ bool PAT::operator==(const PAT& pt)
            section_number == pt.section_number;
     //return crc32 == pt.crc32;
 }
-

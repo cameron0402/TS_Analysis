@@ -122,8 +122,21 @@ bool PMT::joinTo(TSFactory* sf)
         if(ei != NULL)
             sf->esg_list.push_back(ei);
 
-        Program* pg = new Program(this);
-        sf->prog_list.push_back(pg);
+        std::list<ProgInfo*>::iterator pit = sf->pat->prog_list.begin();
+        for(; pit != sf->pat->prog_list.end(); ++pit)
+        {
+            if(program_number == (*pit)->program_number)
+            {
+                (*pit)->setInfo(this);
+                std::list<Stream*>::iterator sit = (*pit)->stream_list.begin();
+                for(; sit != (*pit)->stream_list.end(); ++sit)
+                {
+                    if((*sit)->scrambling)
+                        sf->raw_sarr[(*sit)->stream_pid]->scrambling_flag = true;
+                }
+                break;
+            }
+        }
     }
     
     return true;
@@ -253,66 +266,6 @@ void PMT::resolved()
     tmp = new TiXmlElement("CRC32");
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
-}
-
-Stream::Stream(PMT::StreamInfo* si)
-    : stream_pid(si->elem_PID),
-      stream_type(si->type),
-      scrambling(false),
-      pts_list(MAX_PTS_NUM),
-      dts_list(MAX_DTS_NUM)
-{
-    std::list<Descriptor*>::iterator dit = si->desc_list.begin();
-    for(; dit != si->desc_list.end(); ++dit)
-    {
-        if((*dit)->tag == 0x09) //CA_descriptor
-        {
-            scrambling = true;
-            break;
-        }
-    }
-}
-
-Stream::~Stream()
-{
-}
-
-Program::Program(PMT* pt)
-    : program_number(pt->program_number),
-      pcr_pid(pt->PCR_PID),
-      scrambling(false),
-      pcr_list(MAX_PCR_NUM),
-      pcr_pkt_list(MAX_PCR_NUM),
-      stream_list()
-{
-    std::list<Descriptor*>::iterator dit = pt->desc_list.begin();
-    for(; dit != pt->desc_list.end(); ++dit)
-    {
-        if((*dit)->tag == 0x09) //CA_descriptor
-        {
-            scrambling = true;
-            break;
-        }
-    }
-
-    std::list<PMT::StreamInfo*>::iterator si = pt->stream_list.begin();
-    for(; si != pt->stream_list.end(); ++si)
-    {
-        Stream* sm = new Stream(*si);
-        stream_list.push_back(sm);
-        if(scrambling)
-        {
-            sm->scrambling = true;
-        }
-    }
-}
-
-Program::~Program()
-{
-    std::list<Stream*>::iterator si = stream_list.begin();
-    for(; si != stream_list.end(); ++si)
-        delete (*si);
-    stream_list.clear();
 }
 
 

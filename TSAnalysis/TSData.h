@@ -11,13 +11,12 @@ class TSData
     enum {INVALID_CC = 0x10};
     enum {MAX_TS_LENGTH = 65536};
     enum ts_type {SECTION, PESDATA};
-    TSData(ts_type tp);
 
+    TSData(ts_type tp);
     virtual ~TSData();
 
     void Reset();
     void getPES();
-
     uint32_t get_crc();
 
     uint16_t PID;
@@ -32,6 +31,12 @@ class TSData
  
     uint32_t crc;
     uint32_t pkt_num;
+
+    uint16_t pcr_pid;
+    LimitQueue<uint32_t> pcr_pkt_list;
+    double max_bit_rate;
+    double min_bit_rate;
+    double cur_bit_rate;
 
     PES* pes;
     bool recv_flag;

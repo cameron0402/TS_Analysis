@@ -2,6 +2,7 @@
 #include "../../TSAnalysis/TSFactory.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
+#include "../../Descriptor/DVB/CADesc.h"
 
 //##ModelId=55558B3703CA
 CAT::CAT()
@@ -44,7 +45,28 @@ bool CAT::joinTo(TSFactory* sf)
     std::pair<std::set<CAT*, cmp_secp<CAT>>::iterator, bool> ret;
     ret = sf->cat_list.insert(this);
     if(ret.second)
+    {
         this->getDetail();
+        //set EMM pid info
+        std::list<Descriptor*>::iterator dit = desc_list.begin();
+        for(; dit != desc_list.end(); ++dit)
+        {
+            if((*dit)->tag == 0x09)
+            {
+                uint16_t emm_pid = ((CADesc*)(*dit))->CA_PID;
+                if(sf->raw_sarr[emm_pid] == NULL)
+                {
+                    sf->raw_sarr[emm_pid] = sf->createTSdata(emm_pid, TS_TYPE_PES, "EMM");
+                }
+                else
+                {
+                    strcpy(sf->raw_sarr[emm_pid]->type.sdes, "EMM");
+                }
+            }
+        }
+    }
+
+    
     return ret.second;
 }
 

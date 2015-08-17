@@ -51,11 +51,14 @@ bool PAT::joinTo(TSFactory* sf)
         std::list<ProgInfo*>::iterator pit;
         for(pit = prog_list.begin(); pit != prog_list.end(); ++pit)
         {
-            if(sf->raw_sarr[(*pit)->program_map_PID] != NULL)
+            uint16_t pid = (*pit)->program_map_PID;
+            if(sf->raw_sarr[pid] != NULL)
             {
-                delete sf->raw_sarr[(*pit)->program_map_PID];
+                delete sf->raw_sarr[pid];
             }
-            sf->raw_sarr[(*pit)->program_map_PID] = new TSData(TSData::SECTION);
+            sf->raw_sarr[pid] = new TSData(pid);
+            sf->raw_sarr[pid]->type.type = TS_TYPE_SECTION;
+            strcpy(sf->raw_sarr[pid]->type.sdes, "PMT");
         }
         sf->pat = this;
         return true;

@@ -4,6 +4,7 @@
 #include "../DSMCC/DsmccSection.h"
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
+#include "../../Descriptor/DVB/CADesc.h"
 
 //##ModelId=55556B720001
 PMT::PMT()
@@ -100,28 +101,44 @@ bool PMT::joinTo(TSFactory* sf)
 
     if(!upd)
     {
+        //set the dsmcc section
         ESGInfo* ei = NULL;
         std::list<StreamInfo*>::iterator sit;
         for(sit = stream_list.begin(); sit != stream_list.end(); ++sit)
         {
+            uint16_t pid = (*sit)->elem_PID;
             if((*sit)->type == 0x0B)
             {
-                if(sf->raw_sarr[(*sit)->elem_PID] != NULL)
-                    delete sf->raw_sarr[(*sit)->elem_PID];
-
-                sf->raw_sarr[(*sit)->elem_PID] = new TSData(TSData::SECTION);
-
+                if(sf->raw_sarr[pid] == NULL)
+                {
+                    sf->raw_sarr[pid] = sf->createTSdata(pid, TS_TYPE_SECTION, "13818-6 type B");
+                }
+                else
+                {
+                    sf->raw_sarr[pid]->Reset();
+                    sf->raw_sarr[pid]->type.type = TS_TYPE_SECTION;
+                    strcpy(sf->raw_sarr[pid]->type.sdes, "13818-6 type B");
+                }
+                
                 if(ei == NULL)
                     ei = new ESGInfo(program_number);
 
                 if(ei != NULL)
-                    ei->pid_list.push_back((*sit)->elem_PID);
+                    ei->pid_list.push_back(pid);
+            }
+            else
+            {
+                if(sf->raw_sarr[pid] == NULL)
+                {
+                    sf->raw_sarr[pid] = sf->createTSdata(pid, TS_TYPE_PES, "未知类型");
+                }
             }
         }
 
         if(ei != NULL)
             sf->esg_list.push_back(ei);
 
+        //set the streams pid info
         std::list<ProgInfo*>::iterator pit = sf->pat->prog_list.begin();
         for(; pit != sf->pat->prog_list.end(); ++pit)
         {
@@ -131,10 +148,35 @@ bool PMT::joinTo(TSFactory* sf)
                 std::list<Stream*>::iterator sit = (*pit)->stream_list.begin();
                 for(; sit != (*pit)->stream_list.end(); ++sit)
                 {
+                    int pid = (*sit)->stream_pid;
                     if((*sit)->scrambling)
-                        sf->raw_sarr[(*sit)->stream_pid]->scrambling_flag = true;
+                        sf->raw_sarr[pid]->scrambling_flag = true;
+
+                    strcpy(sf->raw_sarr[pid]->type.sdes, (*sit)->stream_type->sdes);
+                    if((*sit)->stream_type->type == TS_TYPE_VID)
+                        strcat(sf->raw_sarr[pid]->type.sdes, " 视频");
+                    else if((*sit)->stream_type->type == TS_TYPE_AUD)
+                        strcat(sf->raw_sarr[pid]->type.sdes, " 音频");
                 }
                 break;
+            }
+        }
+
+        //set the ECM pid info
+        std::list<Descriptor*>::iterator dit = desc_list.begin();
+        for(; dit != desc_list.end(); ++dit)
+        {
+            if((*dit)->tag == 0x09)
+            {
+                uint16_t ecm_pid = ((CADesc*)(*dit))->CA_PID;
+                if(sf->raw_sarr[ecm_pid] == NULL)
+                {
+                    sf->raw_sarr[ecm_pid] = sf->createTSdata(ecm_pid, TS_TYPE_PES, "ECM");
+                }
+                else
+                {
+                    strcpy(sf->raw_sarr[ecm_pid]->type.sdes, "ECM");
+                }
             }
         }
     }

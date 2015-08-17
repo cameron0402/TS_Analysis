@@ -71,12 +71,16 @@ public:
     std::list<ESGInfo*> esg_stable_list;
 
     TSData* raw_sarr[MAX_PID_NUM];
-    //std::map<uint16_t, TSData*> raw_sarr;
+    std::vector<uint16_t> pid_vec;
 
+    uint16_t pcr_pid; //stream of all pids use this pcr_pid
     uint32_t pkt_num;
     double max_bit_rate;
     double min_bit_rate;
     double cur_bit_rate;
+
+    TSData* createTSdata(uint16_t pid);
+    TSData* createTSdata(uint16_t pid, int type, char* sdes);
 
 private:
     TSFactory();

@@ -4,15 +4,19 @@
 #include "../def.h"
 #include "../PES/PES.h"
 
-//##ModelId=555EBFC0003F
+typedef struct _ts_type
+{
+    int type;
+    char sdes[64];
+}ts_type;
+
 class TSData
 {
   public:
     enum {INVALID_CC = 0x10};
     enum {MAX_TS_LENGTH = 65536};
-    enum ts_type {SECTION, PESDATA};
 
-    TSData(ts_type tp);
+    TSData(uint16_t pid);
     virtual ~TSData();
 
     void Reset();
@@ -32,7 +36,6 @@ class TSData
     uint32_t crc;
     uint32_t pkt_num;
 
-    uint16_t pcr_pid;
     LimitQueue<uint32_t> pcr_pkt_list;
     double max_bit_rate;
     double min_bit_rate;

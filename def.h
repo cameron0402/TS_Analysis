@@ -35,6 +35,11 @@ const int MAX_PCR_NUM = 1000;
 const int MAX_PTS_NUM = MAX_PCR_NUM;
 const int MAX_DTS_NUM = MAX_PCR_NUM;
 
+const int TS_TYPE_PES = 1;
+const int TS_TYPE_SECTION = 2;
+
+const int INVALIDATE_PCR_PID = 0x1FFF;
+
 /* TS packet type */
 #define TS_TMSK_BASE    (0x00FF) /* BIT[7:0]: base type mask */
 #define TS_TMSK_PCR     (0x0100) /* BIT[8:8]: 0(without PCR), 1(with PCR) */
@@ -129,7 +134,7 @@ static const struct stream_type_table STREAM_TYPE_TABLE[] = {
     {0x02, TS_TYPE_VID, "MPEG-2", "ITU-T Rec.H.262|ISO/IEC 13818-2 Video or MPEG-1 parameter limited"},
     {0x03, TS_TYPE_AUD, "MPEG-1", "ISO/IEC 11172-3 Audio"},
     {0x04, TS_TYPE_AUD, "MPEG-2", "ISO/IEC 13818-3 Audio"},
-    {0x05, TS_TYPE_USR, "private", "ITU-T Rec.H.222.0|ISO/IEC 13818-1 private_sections"},
+    {0x05, TS_TYPE_USR, "Private", "ITU-T Rec.H.222.0|ISO/IEC 13818-1 private_sections"},
     {0x06, TS_TYPE_AUD, "AC3|TT|LPCM", "ITU-T Rec.H.222.0|ISO/IEC 13818-1 PES packets containing private data|Dolby Digital DVB|Linear PCM"},
     {0x07, TS_TYPE_USR, "MHEG", "ISO/IEC 13522 MHEG"},
     {0x08, TS_TYPE_USR, "DSM-CC", "ITU-T Rec.H.222.0|ISO/IEC 13818-1 Annex A DSM-CC"},
@@ -138,7 +143,7 @@ static const struct stream_type_table STREAM_TYPE_TABLE[] = {
     {0x0B, TS_TYPE_USR, "13818-6 type B", "ISO/IEC 13818-6 type B: DSM-CC U-N Messages"},
     {0x0C, TS_TYPE_USR, "13818-6 type C", "ISO/IEC 13818-6 type C: DSM-CC Stream Descriptors"},
     {0x0D, TS_TYPE_USR, "13818-6 type D", "ISO/IEC 13818-6 type D: DSM-CC Sections or DSM-CC Addressable Sections"},
-    {0x0E, TS_TYPE_USR, "auxiliary", "ITU-T Rec.H.222.0|ISO/IEC 13818-1 auxiliary"},
+    {0x0E, TS_TYPE_USR, "Auxiliary", "ITU-T Rec.H.222.0|ISO/IEC 13818-1 auxiliary"},
     {0x0F, TS_TYPE_AUD, "AAC ADTS", "ISO/IEC 13818-7 Audio with ADTS transport syntax"},
     {0x10, TS_TYPE_VID, "MPEG-4", "ISO/IEC 14496-2 Visual"},
     {0x11, TS_TYPE_AUD, "AAC LATM", "ISO/IEC 14496-3 Audio with LATM transport syntax"},

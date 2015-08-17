@@ -37,7 +37,7 @@ Stream::~Stream()
 ProgInfo::ProgInfo(uint8_t* data)
     : program_number((data[0] << 8) | data[1]),
       program_map_PID(((data[2] & 0x1F) << 8) | data[3]),
-      pcr_pid(0x1FFF),
+      pcr_pid(INVALIDATE_PCR_PID),
       scrambling(false),
       pcr_list(MAX_PCR_NUM),
       pcr_pkt_list(MAX_PCR_NUM),
@@ -98,7 +98,8 @@ void TSFactory::ESGather(int pid, uint8_t* ts_packet, std::ofstream& of)
 
     if(raw_sarr[pid] == NULL)
     {
-        raw_sarr[pid] = new TSData(TSData::PESDATA);
+        raw_sarr[pid] = new TSData(pid);
+        raw_sarr[pid]->type.type = TS_TYPE_PES;
     }
 
     TSData* raw_ts = raw_sarr[pid];
@@ -165,14 +166,16 @@ int TSFactory::adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
                 if((*pit)->pcr_pid == raw_ts->PID)
                 {
                     int idx = (*pit)->pcr_list.Size() - 1;
+                    int64_t pcr_pre, pcr_intv, pcr_excp_intv;
+                    double inv, tminv, ecbr;
                     if(idx > 0)
                     {
-                        int64_t pcr_pre = (*pit)->pcr_list[idx];
-                        int64_t pcr_intv = pcr - pcr_pre;
-                        double inv = double(pcr_intv) / 27000;
-                        int64_t pcr_excp_intv = ((*pit)->pcr_list[idx] - (*pit)->pcr_list[idx - 1]) *
-                                                (pkt_num - (*pit)->pcr_pkt_list[idx]) /
-                                                ((*pit)->pcr_pkt_list[idx] - (*pit)->pcr_pkt_list[idx - 1]);
+                        pcr_pre = (*pit)->pcr_list[idx];
+                        pcr_intv = pcr - pcr_pre;
+                        inv = double(pcr_intv) / 27000;
+                        pcr_excp_intv = ((*pit)->pcr_list[idx] - (*pit)->pcr_list[idx - 1]) *
+                                        (pkt_num - (*pit)->pcr_pkt_list[idx]) /
+                                        ((*pit)->pcr_pkt_list[idx] - (*pit)->pcr_pkt_list[idx - 1]);
 
                         if(pcr_excp_intv - pcr_intv >= 14 || pcr_excp_intv - pcr_intv <= -14)
                             pcr_acu_err = true;
@@ -181,23 +184,51 @@ int TSFactory::adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
                             pcr_dis_err = true;
 
                         if(inv > 40)
-                            pcr_inv_err = true;
-
-                        if(idx > 10)
-                        {
-                            cur_bit_rate = (pkt_num - (*pit)->pcr_pkt_list[idx - 10]) * 188 * 8 / 
-                                           ((pcr - (*pit)->pcr_list[idx - 10]) / (double)27000);
-                            if(cur_bit_rate > 1)
-                            {
-                                if(cur_bit_rate > max_bit_rate)
-                                    max_bit_rate = cur_bit_rate;
-                                if(cur_bit_rate < min_bit_rate)
-                                    min_bit_rate = cur_bit_rate; 
-                            }                             
-                        }                                         
+                            pcr_inv_err = true;                                   
                     }
+
+                    if(idx > 10)
+                    {
+                        tminv = (pcr - (*pit)->pcr_list[idx - 10]) / (double)27000;
+                        ecbr = (pkt_num - (*pit)->pcr_pkt_list[idx - 10]) * 8 / tminv;
+                        if(ecbr > 0.01)
+                        {
+                            cur_bit_rate = ecbr;
+                            if(cur_bit_rate > max_bit_rate)
+                                max_bit_rate = cur_bit_rate;
+                            if(cur_bit_rate < min_bit_rate || min_bit_rate <= 0)
+                                min_bit_rate = cur_bit_rate; 
+                        }                             
+                    }   
+
+                    if((*pit)->pcr_pid == pcr_pid)
+                    {
+                        int ct = pid_vec.size();
+                        for(int i = 0; i < ct; ++i)
+                        {
+                            int tpid = pid_vec[i];
+                            int pct = raw_sarr[tpid]->pcr_pkt_list.Size() - 1;
+                            TSData* td = raw_sarr[tpid];
+                            if(pct > 10)
+                            {
+                                ecbr = (td->pkt_num - td->pcr_pkt_list[pct - 10]) * 8 / tminv;
+                                if(ecbr > 0.01)
+                                {
+                                    td->cur_bit_rate = ecbr;
+                                    if(td->cur_bit_rate > td->max_bit_rate)
+                                        td->max_bit_rate = td->cur_bit_rate;
+                                    if(td->cur_bit_rate < td->min_bit_rate || td->min_bit_rate <= 0)
+                                        td->min_bit_rate = td->cur_bit_rate; 
+                                }
+                            }
+                            td->pcr_pkt_list.Push(raw_sarr[tpid]->pkt_num);
+                        }                 
+                    }
+
                     (*pit)->pcr_list.Push(pcr);
                     (*pit)->pcr_pkt_list.Push(pkt_num);
+
+                    break;
                 }
             }
         }
@@ -319,39 +350,37 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
     bool pcr_inv_err = false;
     bool pcr_dis_err = false;
     bool pcr_acu_err = false;
+    TSData* raw_ts = NULL;
 
     if(raw_sarr[pid] == NULL)
     {
-        raw_sarr[pid] = new TSData(TSData::PESDATA);
-        raw_sarr[pid]->PID = pid;
+        raw_sarr[pid] = createTSdata(pid);
     }
+    raw_ts = raw_sarr[pid];
 
-    ++pkt_num;
-    ++raw_sarr[pid]->pkt_num;
-
-    if(raw_sarr[pid]->pcr_pid == 0xFFFF)
+    if(pcr_pid == INVALIDATE_PCR_PID)
     {
         if(pat != NULL && !pat->prog_list.empty())
         {
-            raw_sarr[pid]->pcr_pid = pat->prog_list.front()->pcr_pid;
+            std::list<ProgInfo*>::iterator pit = pat->prog_list.begin();
+            for( ; pit != pat->prog_list.end(); ++pit)
+            {
+                if((*pit)->pcr_pid != INVALIDATE_PCR_PID)
+                {
+                    pcr_pid = (*pit)->pcr_pid;
+                    break;
+                }
+            }
         }
     }
+
+    ++pkt_num;
+    ++raw_ts->pkt_num;
 
     if(pid == 0x1FFF)
     {
         return ;
     }
-
-    TSData* raw_ts = raw_sarr[pid];
-
-    //ts packet start
-    if(ts_packet[0] != 0x47)
-    {
-        return ;
-    }
-
-    //section PID
-    raw_ts->PID = ((ts_packet[1] & 0x1F) << 8) | ts_packet[2];
 
     /* Analysis the adaptation_field if present */
     uint8_t adp_ctr = (ts_packet[3] & 0x30) >> 4;
@@ -366,16 +395,10 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
         return ;
     }
 
-    /* scrambling flag */
-    if(ts_packet[3] & 0xC0)
-    {
-        raw_ts->scrambling_flag = true;
-    }
-
     /* Unit start -> deal the last Section or PES first, then start gather a new one */
     if(ts_packet[1] & 0x40)
     {
-        if(raw_ts->type == TSData::SECTION)
+        if(raw_ts->type.type == TS_TYPE_SECTION)
         {
             payload_pos = payload_pos + *payload_pos + 1;
             if(raw_ts->recv_length != 0)
@@ -387,7 +410,7 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
             raw_ts->ts_data_length = (((payload_pos[1] & 0x0F) << 8) | payload_pos[2]) + 3;
         }
         
-        if(raw_ts->type == TSData::PESDATA)
+        if(raw_ts->type.type == TS_TYPE_PES)
         {
             if(raw_ts->recv_length != 0)
             {
@@ -407,7 +430,7 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
         available_length = 188 + ts_packet - payload_pos;
         if(available_length > 0)
         {
-            if(raw_ts->type == TSData::PESDATA &&
+            if(raw_ts->type.type == TS_TYPE_PES &&
                 raw_ts->recv_length + available_length > raw_ts->ts_data_length)
             {
                 raw_ts->ts_data_length += TSData::MAX_TS_LENGTH;
@@ -529,6 +552,42 @@ Section* TSFactory::createSectoin(TSData* raw_section)
     return NULL;
 }
 
+TSData* TSFactory::createTSdata(uint16_t pid, int type, char* sdes)
+{
+    TSData* td = new TSData(pid);
+    td->type.type = type;
+    strcpy(td->type.sdes, sdes);
+    pid_vec.push_back(pid);
+    return td;
+}
+
+TSData* TSFactory::createTSdata(uint16_t pid)
+{
+    TSData* td = new TSData(pid);
+    td->type.type = TS_TYPE_SECTION;
+    switch(pid)
+    {
+        case 0x00: strcpy(td->type.sdes, "PAT"); break;
+        case 0x01: strcpy(td->type.sdes, "CAT"); break;
+        case 0x02: strcpy(td->type.sdes, "TSDT"); break;
+        case 0x10: strcpy(td->type.sdes, "NIT"); break;
+        case 0x11: strcpy(td->type.sdes, "BAT/SDT"); break;
+        case 0x12: strcpy(td->type.sdes, "EIT"); break;
+        case 0x13: strcpy(td->type.sdes, "RST"); break;
+        case 0x14: strcpy(td->type.sdes, "TDT/TOT"); break;
+        case 0x1E: strcpy(td->type.sdes, "DIT"); break;
+        case 0x1F: strcpy(td->type.sdes, "SIT"); break;
+        case 0x1FFF: strcpy(td->type.sdes, "空包"); break;
+        default: 
+            strcpy(td->type.sdes, "未知类型");
+            td->type.type = TS_TYPE_PES; 
+            break;
+    }
+
+    pid_vec.push_back(pid);
+    return td;
+}
+
 //##ModelId=5555977903C2
 TSFactory* TSFactory::GetInstance()
 {
@@ -553,16 +612,13 @@ TSFactory::TSFactory()
       esg_list(),
       esg_stable_list(),
       raw_sarr(),
+      pid_vec(),
+      pcr_pid(INVALIDATE_PCR_PID),
       pkt_num(0),
       max_bit_rate(0),
       min_bit_rate(0),
       cur_bit_rate(0)
 {
-    int i;
-    for(i = 0; i < 0x1F; ++i)
-    {
-        raw_sarr[i] = new TSData(TSData::SECTION);
-    }
 }
 
 TSFactory::~TSFactory()

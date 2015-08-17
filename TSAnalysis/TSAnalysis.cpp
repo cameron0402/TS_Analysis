@@ -5,6 +5,7 @@
 TSAnalysis::TSAnalysis(char* infile)
     : ts_err(),
       err_xml(new TiXmlElement("ERROR_LOG")),
+      sf(NULL),
       in_ts_file(infile),
       inf(infile, std::ifstream::binary),
       analyzing(false)

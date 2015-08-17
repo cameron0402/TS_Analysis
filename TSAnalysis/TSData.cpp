@@ -58,9 +58,9 @@ uint32_t TSData::get_crc()
 }
 
 //##ModelId=555EC4060105
-TSData::TSData(ts_type tp)
-    : PID(0xFFFF),
-      type(tp),
+TSData::TSData(uint16_t pid)
+    : PID(pid),
+      type(),
       ts_data(NULL),
       ts_data_length(TSData::MAX_TS_LENGTH),
       continuity_counter(INVALID_CC),
@@ -69,7 +69,6 @@ TSData::TSData(ts_type tp)
       scrambling_flag(false),
       crc(0xFFFFFFFF),
       pkt_num(0),
-      pcr_pid(0xFFFF),
       pcr_pkt_list(MAX_PCR_NUM),
       max_bit_rate(0),
       min_bit_rate(0),
@@ -101,7 +100,6 @@ void TSData::Reset()
     recv_length = 0;
     continuity_counter = INVALID_CC;
     discontinuity_flag = false;
-    scrambling_flag = false;
     crc = 0xFFFFFFFF;
     recv_flag = false;
 }

@@ -1,11 +1,5 @@
 #include "MultiplexBufferUtilizationDesc.h"
 
-//##ModelId=55594A2B0077
-MultiplexBufferUtilizationDesc::MultiplexBufferUtilizationDesc()
-{
-}
-
-//##ModelId=55594A410077
 MultiplexBufferUtilizationDesc::MultiplexBufferUtilizationDesc(uint8_t* data) 
     : Descriptor(data),
       mdv_valid_flag(data[2] >> 7),
@@ -14,7 +8,6 @@ MultiplexBufferUtilizationDesc::MultiplexBufferUtilizationDesc(uint8_t* data)
 {
 }
 
-//##ModelId=55594A6B0286
 MultiplexBufferUtilizationDesc::~MultiplexBufferUtilizationDesc()
 {
 }

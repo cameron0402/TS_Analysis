@@ -15,15 +15,12 @@ class ISO639LanguageDesc : public Descriptor
         LanguageInfo(uint8_t* data);
         ~LanguageInfo();
 
-        uint8_t lang[3];
+        uint8_t lang[4];
         uint8_t audio_type;
     };
-    ISO639LanguageDesc();
 
-    //##ModelId=555938F30225
     ISO639LanguageDesc(uint8_t* data);
 
-    //##ModelId=555939280014
     virtual ~ISO639LanguageDesc();
 
     virtual void resolved();

@@ -3,6 +3,7 @@
 
 #include "../def.h"
 #include "TSData.h"
+#include "../Descriptor/DVB/DescFactory.h"
 #include "../Section/Section.h"
 #include "../Section/PSI_SI/BAT.h"
 #include "../Section/PSI_SI/CAT.h"
@@ -62,7 +63,7 @@ public:
     std::set<PMT*, cmp_secp<PMT>> pmt_list;
     std::set<NIT*, cmp_secp<NIT>> nit_list;
     std::set<CAT*, cmp_secp<CAT>> cat_list;
-    std::list<BAT*> bat_list;
+    std::set<BAT*, cmp_secp<BAT>> bat_list;
     std::set<SDT*, cmp_secp<SDT>> sdt_list;
     std::set<EIT*, cmp_secp<EIT>> eit_list;
     TDT* tdt;

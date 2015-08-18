@@ -113,8 +113,8 @@ bool SDT::operator<(const SDT& st)
 
 bool SDT::joinTo(TSFactory* sf)
 {
-    std::pair<std::set<SDT*, cmp_secp<SDT>>::iterator, bool> ret;
-    ret = sf->sdt_list.insert(this);
+    std::pair<std::set<SDT*, cmp_secp<SDT>>::iterator, bool> 
+        ret = sf->sdt_list.insert(this);
     if(ret.second)
     {
         this->getDetail();

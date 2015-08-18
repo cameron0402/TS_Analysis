@@ -25,7 +25,6 @@ BAT::TransStreamInfo::TransStreamInfo(uint8_t* data)
     }
 }
 
-//##ModelId=55628F5903C0
 BAT::TransStreamInfo::~TransStreamInfo()
 {
     std::list<Descriptor*>::iterator dit;
@@ -36,12 +35,6 @@ BAT::TransStreamInfo::~TransStreamInfo()
     desc_list.clear();
 }
 
-//##ModelId=55628C8D03B6
-BAT::BAT()
-{
-}
-
-//##ModelId=55628C9103A7
 BAT::BAT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       bouquet_id((data[3] << 8) | data[4]), 
@@ -62,7 +55,6 @@ BAT::BAT(uint8_t* data, uint16_t len, uint32_t crc)
     }
 }
 
-//##ModelId=55628C96028F
 BAT::~BAT()
 {
     std::list<TransStreamInfo*>::iterator tsit;
@@ -82,20 +74,31 @@ BAT::~BAT()
 
 bool BAT::operator==(const BAT& bt)
 {
-    return crc32 == bt.crc32;
+    return bouquet_id == bt.bouquet_id &&
+           section_number == bt.section_number;
+}
+
+bool BAT::operator<(const BAT& bt)
+{
+    if(bouquet_id < bt.bouquet_id)
+        return true;
+    else if(bouquet_id == bt.bouquet_id)
+    {
+        if(section_number < bt.section_number)
+            return true;
+    }
+    return false;
 }
 
 bool BAT::joinTo(TSFactory* sf)
 {
-    std::list<BAT*>::iterator bit;
-    for(bit = sf->bat_list.begin(); bit != sf->bat_list.end(); ++bit)
+    std::pair<std::set<BAT*, cmp_secp<BAT>>::iterator, bool> ret
+        = sf->bat_list.insert(this);
+    if(ret.second)
     {
-        if(*(*bit) == *this)
-            return false;
+        this->getDetail();
     }
-    this->getDetail();
-    sf->bat_list.push_back(this);
-    return true;
+    return ret.second;
 }
 
 void BAT::getDetail()

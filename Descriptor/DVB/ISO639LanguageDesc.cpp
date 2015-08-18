@@ -5,7 +5,9 @@ ISO639LanguageDesc::LanguageInfo::LanguageInfo()
 
 }
 
-ISO639LanguageDesc::LanguageInfo::LanguageInfo(uint8_t* data) : audio_type(data[3])
+ISO639LanguageDesc::LanguageInfo::LanguageInfo(uint8_t* data) 
+    : lang(),
+      audio_type(data[3])
 {
     memcpy(lang, data, 3);
 }
@@ -15,12 +17,6 @@ ISO639LanguageDesc::LanguageInfo::~LanguageInfo()
 
 }
 
-//##ModelId=555938E30314
-ISO639LanguageDesc::ISO639LanguageDesc()
-{
-}
-
-//##ModelId=555938F30225
 ISO639LanguageDesc::ISO639LanguageDesc(uint8_t* data) : Descriptor(data)
 {
     int index = 2;
@@ -32,7 +28,6 @@ ISO639LanguageDesc::ISO639LanguageDesc(uint8_t* data) : Descriptor(data)
     }
 }
 
-//##ModelId=555939280014
 ISO639LanguageDesc::~ISO639LanguageDesc()
 {
     std::list<LanguageInfo*>::iterator lit;

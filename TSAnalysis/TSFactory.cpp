@@ -11,9 +11,8 @@ Stream::Stream(PMT::StreamInfo* si)
     int i = 0;
     for(;;i++)
     {
-        if(STREAM_TYPE_TABLE[i].stream_type == 0xFF)
-            break;
-        if(STREAM_TYPE_TABLE[i].stream_type == si->type)
+        if(STREAM_TYPE_TABLE[i].stream_type == si->type ||
+           STREAM_TYPE_TABLE[i].stream_type == 0xFF)
         {
             stream_type = &STREAM_TYPE_TABLE[i];
             break;
@@ -647,7 +646,7 @@ TSFactory::~TSFactory()
     }
     nit_list.clear();
 
-    std::list<BAT*>::iterator bit;
+    std::set<BAT*, cmp_secp<BAT>>::iterator bit;
     for(bit = bat_list.begin(); bit != bat_list.end(); ++bit)
     {
         delete (*bit);

@@ -1,29 +1,35 @@
 #include "SubtitlingDesc.h"
 
-//##ModelId=555BF08E02F0
-SubtitlingDesc::SubtitlingDesc()
+SubtitlingDesc::SubtitleInfo::SubtitleInfo(uint8_t* data)
+    : ISO6392_language(),
+      subtitling_type(data[3]),
+      composition_page_id((data[4] << 8) | data[5]),
+      ancillary_page_id((data[6] << 8) | data[7])
 {
+    memcpy(ISO6392_language, data, 3);
+};
+
+SubtitlingDesc::SubtitleInfo::~SubtitleInfo()
+{
+
 }
 
-//##ModelId=555BF097025A
 SubtitlingDesc::SubtitlingDesc(uint8_t* data) : Descriptor(data)
 {
     int index = 2;
-    SubtitleInfo tmp;
+    SubtitleInfo* tmp;
     while(index < length + 2)
     {
-        memcpy(tmp.ISO6392_language, data + index, 3);
-        tmp.subtitling_type = data[index + 4];
-        tmp.composition_page_id = (data[index + 5] << 8) | data[index + 6];
-        tmp.ancillary_page_id = (data[index + 7] << 8) | data[index + 8];
-        index += 8;
-
+        tmp = new SubtitleInfo(data + index);
         subtitle_list.push_back(tmp);
+        index += 8;     
     }
 }
 
-//##ModelId=555BF09F0160
 SubtitlingDesc::~SubtitlingDesc()
 {
+    std::list<SubtitlingDesc::SubtitleInfo*>::iterator sit = subtitle_list.begin();
+    for(; sit != subtitle_list.end(); ++sit)
+        delete (*sit);
 }
 

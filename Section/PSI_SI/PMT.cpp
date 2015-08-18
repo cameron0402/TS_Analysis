@@ -6,12 +6,10 @@
 #include "../../Descriptor/DVB/DescFactory.h"
 #include "../../Descriptor/DVB/CADesc.h"
 
-//##ModelId=55556B720001
 PMT::PMT()
 {
 }
 
-//##ModelId=55556B820369
 PMT::PMT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       program_number((data[3] << 8) | data[4]), 
@@ -32,7 +30,6 @@ PMT::PMT(uint8_t* data, uint16_t len, uint32_t crc)
     }
 }
 
-//##ModelId=5558288B00A9
 PMT::~PMT()
 {
     std::list<Descriptor*>::iterator dit;
@@ -50,12 +47,10 @@ PMT::~PMT()
     stream_list.clear();
 }
 
-//##ModelId=555D7D58002F
 PMT::StreamInfo::StreamInfo()
 {
 }
 
-//##ModelId=555D7D6A03E1
 PMT::StreamInfo::StreamInfo(uint8_t* data)
     : type(data[0]),
       elem_PID(((data[1] & 0x1F) << 8) | data[2]),
@@ -72,7 +67,6 @@ PMT::StreamInfo::StreamInfo(uint8_t* data)
     }
 }
 
-//##ModelId=555D7D6D016C
 PMT::StreamInfo::~StreamInfo()
 {
     std::list<Descriptor*>::iterator dit;

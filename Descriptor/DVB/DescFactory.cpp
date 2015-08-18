@@ -66,6 +66,8 @@
 #include "DTSAudioStreamDesc.h"
 #include "AACDesc.h"
 #include "ExtensionDesc.h"
+#include "AssociationTagDesc.h"
+#include "CarouselIdentifierDesc.h"
 
 //##ModelId=55585690038B
 Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
@@ -90,6 +92,10 @@ Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
         case 0x10: return new SmoothingBufferDesc(data);
         case 0x11: return new STDDesc(data);
         case 0x12: return new IBPDesc(data);
+
+        //descriptors used in DSM-CC
+        case 0x13: return new CarouselIdentifierDesc(data);
+        case 0x14: return new AssociationTagDesc(data);
 
         //dvb descriptors
         case 0x40: return new NetworkNameDesc(data);
@@ -141,11 +147,7 @@ Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
         case 0x7B: return new DTSAudioStreamDesc(data);
         case 0x7C: return new AACDesc(data);
         case 0x7F: return new ExtensionDesc(data);
-        
-        //descriptors used in DSM-CC, have not defined now
-        case 0x13: //carousel_identifier_descriptor
-        case 0x14: //association_tag_descriptor
-
+  
         //descriptors that can't find definitions
         case 0x6F: //Application_signalling_descriptor
         case 0x71: //Service_identifier_descriptor

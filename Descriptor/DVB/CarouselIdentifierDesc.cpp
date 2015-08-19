@@ -19,7 +19,6 @@ CarouselIdentifierDesc::FormatSpecifier::FormatSpecifier(uint8_t* data)
 
 CarouselIdentifierDesc::FormatSpecifier::~FormatSpecifier()
 {
-
 }
 
 CarouselIdentifierDesc::CarouselIdentifierDesc(uint8_t* data)

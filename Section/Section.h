@@ -8,30 +8,17 @@ class TSFactory;
 class Section
 {
   public:
-    //##ModelId=5555540B00A0
+
     virtual bool joinTo(TSFactory* sf);
-
-    //##ModelId=555561E1025F
     virtual void resolved();
-
     virtual void getDetail();
 
-    //##ModelId=5555A63E015D
-    Section();
-
-    //##ModelId=5555A64603C5
     Section(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
-
-    //##ModelId=5558283C00A1
     virtual ~Section();
 
-    //##ModelId=555551840342
     uint8_t table_id;
-    //##ModelId=555551BF011A
     bool syntax_indicator;
-    //##ModelId=555551E20187
     bool private_indicator;
-    //##ModelId=555552030016
     uint16_t length;
 
     uint8_t* raw_data;

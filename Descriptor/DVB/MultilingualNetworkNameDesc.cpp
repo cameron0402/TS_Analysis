@@ -1,11 +1,5 @@
 #include "MultilingualNetworkNameDesc.h"
 
-//##ModelId=555C035401E5
-MultilingualNetworkNameDesc::MultilingualNetworkNameDesc()
-{
-}
-
-//##ModelId=555C03570297
 MultilingualNetworkNameDesc::MultilingualNetworkNameDesc(uint8_t* data) : Descriptor(data)
 {
     int index = 2; 
@@ -18,7 +12,6 @@ MultilingualNetworkNameDesc::MultilingualNetworkNameDesc(uint8_t* data) : Descri
     }
 }
 
-//##ModelId=555C036901A6
 MultilingualNetworkNameDesc::~MultilingualNetworkNameDesc()
 {
     std::list<MNameInfo*>::iterator mit;
@@ -29,12 +22,9 @@ MultilingualNetworkNameDesc::~MultilingualNetworkNameDesc()
     netname_list.clear();
 }
 
-MultilingualNetworkNameDesc::MNameInfo::MNameInfo()
-{
-}
-
 MultilingualNetworkNameDesc::MNameInfo::MNameInfo(uint8_t* data) 
-    : network_name_length(data[3])
+    : ISO6392_language(),
+      network_name_length(data[3])
 {
     memcpy(ISO6392_language, data, 3);
     network_name = new uint8_t[network_name_length + 1];

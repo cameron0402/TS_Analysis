@@ -4,12 +4,6 @@
 #include "../../Descriptor/DVB/DescFactory.h"
 #include "../../Descriptor/DVB/CADesc.h"
 
-//##ModelId=55558B3703CA
-CAT::CAT()
-{
-}
-
-//##ModelId=55558B3E03C8
 CAT::CAT(uint8_t* data, uint16_t len, uint32_t crc) 
     : Section(data, len),
       version_number((data[5] >> 1) & 0x1F),
@@ -66,7 +60,6 @@ bool CAT::joinTo(TSFactory* sf)
         }
     }
 
-    
     return ret.second;
 }
 

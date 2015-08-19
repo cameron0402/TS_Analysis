@@ -9,7 +9,6 @@ class PMT : public Section
     class StreamInfo
     {
       public:
-        StreamInfo();
         StreamInfo(uint8_t* data);
         virtual ~StreamInfo();
 

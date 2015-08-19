@@ -6,10 +6,6 @@
 #include "../../Descriptor/DVB/DescFactory.h"
 #include "../../Descriptor/DVB/CADesc.h"
 
-PMT::PMT()
-{
-}
-
 PMT::PMT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       program_number((data[3] << 8) | data[4]), 
@@ -47,10 +43,6 @@ PMT::~PMT()
     stream_list.clear();
 }
 
-PMT::StreamInfo::StreamInfo()
-{
-}
-
 PMT::StreamInfo::StreamInfo(uint8_t* data)
     : type(data[0]),
       elem_PID(((data[1] & 0x1F) << 8) | data[2]),
@@ -82,17 +74,22 @@ bool PMT::joinTo(TSFactory* sf)
     bool upd = false;
     std::set<PMT*, cmp_secp<PMT>>::iterator 
         fit = sf->pmt_list.find(this);
-    if(fit != sf->pmt_list.end())
+    if(fit == sf->pmt_list.end())
+    {
+        sf->pmt_list.insert(this);
+        this->getDetail();
+    }
+    else
     {
         if(this->version_number <= (*fit)->version_number)
             return false;
 
-        sf->pmt_list.erase(fit);
+        PMT* pt = (*fit);
+        pt->version_number = this->version_number;
+        pt->crc32 = this->crc32;
         upd = true;
     }
-    sf->pmt_list.insert(this);
-    this->getDetail();
-
+    
     if(!upd)
     {
         //set the dsmcc section

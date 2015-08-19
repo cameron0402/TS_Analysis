@@ -1,10 +1,5 @@
 #include "RST.h"
 
-//##ModelId=556423C803A8
-RST::RSInfo::RSInfo()
-{
-}
-
 //##ModelId=556423D00236
 RST::RSInfo::RSInfo(uint8_t* data)
     : transport_stream_id((data[0] << 8) | data[1]),
@@ -17,11 +12,6 @@ RST::RSInfo::RSInfo(uint8_t* data)
 
 //##ModelId=556423D60087
 RST::RSInfo::~RSInfo()
-{
-}
-
-//##ModelId=556422E4005E
-RST::RST()
 {
 }
 

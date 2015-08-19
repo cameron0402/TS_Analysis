@@ -1,11 +1,5 @@
 #include "LinkageDesc.h"
 
-//##ModelId=555AA14C000F
-LinkageDesc::LinkageDesc()
-{
-}
-
-//##ModelId=555AA155006E
 LinkageDesc::LinkageDesc(uint8_t* data)
     : Descriptor(data),
       transport_stream_id((data[2] << 8) | data[3]),

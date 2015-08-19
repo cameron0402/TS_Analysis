@@ -3,12 +3,6 @@
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
-//##ModelId=5563CDBD00BF
-SDT::SDT()
-{
-}
-
-//##ModelId=5563CDCB02BF
 SDT::SDT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       transport_stream_id((data[3] << 8) | data[4]), 
@@ -36,11 +30,6 @@ SDT::~SDT()
         delete (*sit);
     }
     service_list.clear();
-}
-
-//##ModelId=5563D0B20194
-SDT::ServiceInfo::ServiceInfo()
-{
 }
 
 //##ModelId=5563D0B900DD

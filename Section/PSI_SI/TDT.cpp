@@ -1,12 +1,6 @@
 #include "TDT.h"
 #include "../../TSAnalysis/TSFactory.h"
 
-//##ModelId=556406A303DC
-TDT::TDT()
-{
-}
-
-//##ModelId=556406A801F1
 TDT::TDT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       UTC_time()
@@ -14,7 +8,6 @@ TDT::TDT(uint8_t* data, uint16_t len, uint32_t crc)
     memcpy(UTC_time, data + 3, 5);
 }
 
-//##ModelId=556406AC01FA
 TDT::~TDT()
 {
 }

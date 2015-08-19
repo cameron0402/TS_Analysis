@@ -117,8 +117,8 @@ void BAT::getDetail()
     sub_data = raw_data + 12 + bouquet_descriptors_length;
     while(index < transport_stream_loop_length)
     {
-        TransStreamInfo* tsi = new TransStreamInfo(raw_data + index);
-        index += 4 + tsi->transport_descriptors_length;
+        TransStreamInfo* tsi = new TransStreamInfo(sub_data + index);
+        index += 6 + tsi->transport_descriptors_length;
         streaminfo_list.push_back(tsi);
     }
 }

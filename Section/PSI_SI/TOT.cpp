@@ -3,12 +3,6 @@
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
-//##ModelId=55640EA801B6
-TOT::TOT()
-{
-}
-
-//##ModelId=55640EAC00FC
 TOT::TOT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       descriptors_loop_length(((data[8] & 0xF) << 8) | data[9]),
@@ -22,7 +16,6 @@ TOT::TOT(uint8_t* data, uint16_t len, uint32_t crc)
     memcpy(UTC_time, data + 3, 5);
 }
 
-//##ModelId=55640EAF034C
 TOT::~TOT()
 {
     std::list<Descriptor*>::iterator dit;
@@ -38,17 +31,18 @@ bool TOT::joinTo(TSFactory* sf)
     if(sf->tot != NULL)
         return false;
     
+    getDetail();
     sf->tot = this;
     return true;
 }
 
-void TOT::getDetail(uint8_t* data, uint16_t len)
+void TOT::getDetail()
 {
     int index = 10;
     DescFactory des_fac;
-    while(index < len - 4)
+    while(index < length - 4)
     {
-        Descriptor* des = des_fac.createDesc(data[index], data + index);
+        Descriptor* des = des_fac.createDesc(raw_data[index], raw_data + index);
         desc_list.push_back(des);
         index += des->length + 2;
     }

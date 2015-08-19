@@ -1,11 +1,6 @@
 #include "Section.h"
 #include "../TSAnalysis/TSFactory.h"
 
-Section::Section() : xml(NULL)
-{
-
-}
-
 Section::Section(uint8_t* data, uint16_t len, uint32_t crc)
     : table_id(data[0]),
       syntax_indicator(data[1] >> 7),

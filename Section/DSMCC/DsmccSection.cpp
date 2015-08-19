@@ -3,11 +3,6 @@
 #include "ObjFile.h"
 #include "../../TSAnalysis/TSFactory.h"
 
-DsmccSection::DsmccSection()
-{
-
-}
-
 DsmccSection::DsmccSection(uint8_t* data, uint16_t len, uint32_t crc /* = 0xFFFFFFFF */)
     : Section(data, len, crc),
       table_id_extension((data[3] << 8) | data[4]),

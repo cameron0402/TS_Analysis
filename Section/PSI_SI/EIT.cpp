@@ -3,12 +3,6 @@
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
-//##ModelId=5563DC4003BF
-EIT::EventInfo::EventInfo()
-{
-}
-
-//##ModelId=5563DC47027B
 EIT::EventInfo::EventInfo(uint8_t* data)
     : event_id((data[0] << 8) | data[1]),
       start_time(),
@@ -31,7 +25,6 @@ EIT::EventInfo::EventInfo(uint8_t* data)
     }
 }
 
-//##ModelId=5563DC4D02E1
 EIT::EventInfo::~EventInfo()
 {
     std::list<Descriptor*>::iterator dit;
@@ -42,12 +35,6 @@ EIT::EventInfo::~EventInfo()
     desc_list.clear();
 }
 
-//##ModelId=5563DB220128
-EIT::EIT()
-{
-}
-
-//##ModelId=5563DB260334
 EIT::EIT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       service_id((data[3] << 8) | data[4]), 
@@ -69,7 +56,6 @@ EIT::EIT(uint8_t* data, uint16_t len, uint32_t crc)
     }
 }
 
-//##ModelId=5563DB2B0060
 EIT::~EIT()
 {
     std::list<EventInfo*>::iterator eit;
@@ -85,7 +71,6 @@ bool EIT::operator==(const EIT& et)
     return table_id == et.table_id &&
            transport_stream_id == et.transport_stream_id &&
            service_id == et.service_id &&
-           //version_number == et.version_number &&
 		   section_number == et.section_number;
 }
 
@@ -103,13 +88,8 @@ bool EIT::operator<(const EIT& et)
                 return true;
             else if(service_id == et.service_id)
             {
-                //if(version_number < et.version_number)
-                //    return true;
-                //else if(version_number == et.version_number)
-                //{
-                    if(section_number < et.section_number)
-                        return true;
-                //}
+                if(section_number < et.section_number)
+                    return true;
             }
         }
     }
@@ -143,9 +123,9 @@ bool EIT::joinTo(TSFactory* sf)
     {
         if((*fit)->version_number < this->version_number)
         {
-            sf->eit_list.erase(fit);
-            sf->eit_list.insert(this);
-            this->getDetail();
+            EIT* et = (*fit);
+            et->version_number = this->version_number;
+            et->crc32 = this->crc32;
             return true;
         }
     }

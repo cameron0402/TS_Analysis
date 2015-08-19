@@ -39,7 +39,6 @@ public:
 class DsmccSection : public Section
 {
 public:
-    DsmccSection();
     DsmccSection(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
     virtual ~DsmccSection();
 

@@ -3,12 +3,6 @@
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
-//##ModelId=5555875B00F0
-NIT::NIT()
-{
-}
-
-//##ModelId=55558761023E
 NIT::NIT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       network_id((data[3] << 8) | data[4]), 
@@ -47,12 +41,6 @@ NIT::~NIT()
     desc_list.clear();
 }
 
-//##ModelId=555D8D48003E
-NIT::TransStreamInfo::TransStreamInfo()
-{
-}
-
-//##ModelId=555D8D580325
 NIT::TransStreamInfo::TransStreamInfo(uint8_t* data)
     : transport_stream_id((data[0] << 8) | data[1]),
       original_network_id((data[2] << 8) | data[3]),

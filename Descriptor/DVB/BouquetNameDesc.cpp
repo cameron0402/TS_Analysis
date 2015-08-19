@@ -1,14 +1,9 @@
 #include "BouquetNameDesc.h"
 
-//##ModelId=555A8CC90092
-BouquetNameDesc::BouquetNameDesc()
-{
-}
-
-//##ModelId=555A8CE10380
 BouquetNameDesc::BouquetNameDesc(uint8_t* data) : Descriptor(data)
 {
-    bouquet_name = new uint8_t[length];
+    bouquet_name = new uint8_t[length + 1];
+    bouquet_name[length] = 0;
     memcpy(bouquet_name, data + 2, length);
 }
 

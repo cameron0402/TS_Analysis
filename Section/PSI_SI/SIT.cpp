@@ -2,12 +2,6 @@
 #include "../../Descriptor/Descriptor.h"
 #include "../../Descriptor/DVB/DescFactory.h"
 
-//##ModelId=556429E100BC
-SIT::ServiceInfo::ServiceInfo()
-{
-}
-
-//##ModelId=556429E800A8
 SIT::ServiceInfo::ServiceInfo(uint8_t* data)
     : service_id((data[0] << 8) | data[1]),
       running_status((data[2] >> 4) & 0x07),
@@ -33,11 +27,6 @@ SIT::ServiceInfo::~ServiceInfo()
         delete (*dit);
     }
     desc_list.clear();
-}
-
-//##ModelId=556428CC02B1
-SIT::SIT()
-{
 }
 
 //##ModelId=556428CF03E6

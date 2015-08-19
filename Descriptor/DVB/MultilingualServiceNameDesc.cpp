@@ -1,11 +1,5 @@
 #include "MultilingualServiceNameDesc.h"
 
-//##ModelId=555C229901ED
-MultilingualServiceNameDesc::ServiceInfo::ServiceInfo()
-{
-}
-
-//##ModelId=555C22A00165
 MultilingualServiceNameDesc::ServiceInfo::ServiceInfo(const ServiceInfo& sif)
 {
     if(&sif == this)
@@ -20,7 +14,8 @@ MultilingualServiceNameDesc::ServiceInfo::ServiceInfo(const ServiceInfo& sif)
 }
 
 MultilingualServiceNameDesc::ServiceInfo::ServiceInfo(uint8_t* data)
-    : service_provider_name_length(data[3]),
+    : ISO6392_language(),
+      service_provider_name_length(data[3]),
       service_name_length(data[4 + service_provider_name_length])
 {
     memcpy(ISO6392_language, data, 3);
@@ -34,19 +29,12 @@ MultilingualServiceNameDesc::ServiceInfo::ServiceInfo(uint8_t* data)
     memcpy(service_name, data + 5 + service_provider_name_length, service_name_length);
 }
 
-//##ModelId=555C22A5032C
 MultilingualServiceNameDesc::ServiceInfo::~ServiceInfo()
 {
     delete []service_provider_name;
     delete []service_name;
 }
 
-//##ModelId=555C22F0024C
-MultilingualServiceNameDesc::MultilingualServiceNameDesc()
-{
-}
-
-//##ModelId=555C22FC0065
 MultilingualServiceNameDesc::MultilingualServiceNameDesc(uint8_t* data) : Descriptor(data)
 {
     int index = 2; 
@@ -59,7 +47,6 @@ MultilingualServiceNameDesc::MultilingualServiceNameDesc(uint8_t* data) : Descri
     }
 }
 
-//##ModelId=555C230C0313
 MultilingualServiceNameDesc::~MultilingualServiceNameDesc()
 {
     std::list<ServiceInfo*>::iterator sit;

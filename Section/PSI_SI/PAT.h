@@ -7,7 +7,6 @@ class ProgInfo;
 class PAT : public Section
 {
   public:
-    PAT();
     PAT(uint8_t* data, uint16_t len, uint32_t crc = 0xFFFFFFFF);
 
     virtual ~PAT();

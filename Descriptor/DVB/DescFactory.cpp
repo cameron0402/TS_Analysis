@@ -68,6 +68,7 @@
 #include "ExtensionDesc.h"
 #include "AssociationTagDesc.h"
 #include "CarouselIdentifierDesc.h"
+#include "LogicalChannelDesc.h"
 
 //##ModelId=55585690038B
 Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
@@ -147,6 +148,9 @@ Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
         case 0x7B: return new DTSAudioStreamDesc(data);
         case 0x7C: return new AACDesc(data);
         case 0x7F: return new ExtensionDesc(data);
+
+        //
+        case 0x83: return new LogicalChannelDesc(data);
   
         //descriptors that can't find definitions
         case 0x6F: //Application_signalling_descriptor
@@ -163,7 +167,6 @@ Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
         //ATSC descriptors, user private, also can't find definitions
         case 0x81: //AC3_audio_descriptor
         case 0x82: //SCTE Frame_rate_descriptor
-        case 0x83: //SCTE Extended_video_descriptor
         case 0x84: //SCTE Component_name_descriptor
         case 0x85: //ATSC program_identifier
         case 0x86: //Caption_service_descriptor

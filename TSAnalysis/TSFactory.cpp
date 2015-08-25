@@ -208,7 +208,7 @@ int TSFactory::adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
                             int tpid = pid_vec[i];
                             int pct = raw_sarr[tpid]->pcr_pkt_list.Size() - 1;
                             TSData* td = raw_sarr[tpid];
-                            if(pct > 10)
+                            if(pct > 10 && idx > 10)
                             {
                                 ecbr = (td->pkt_num - td->pcr_pkt_list[pct - 10]) * 8 / tminv;
                                 if(ecbr > 0.01)
@@ -623,7 +623,10 @@ TSFactory::TSFactory()
 TSFactory::~TSFactory()
 {
     if(pat != NULL)
+    {
         delete pat;
+        pat = NULL;
+    }
 
     std::set<PMT*, cmp_secp<PMT>>::iterator pit;
     for(pit = pmt_list.begin(); pit != pmt_list.end(); ++pit)

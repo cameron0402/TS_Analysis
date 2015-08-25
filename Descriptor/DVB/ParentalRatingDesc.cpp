@@ -1,26 +1,32 @@
 #include "ParentalRatingDesc.h"
 
-//##ModelId=555AFA0F001E
-ParentalRatingDesc::ParentalRatingDesc()
+ParentalRatingDesc::RatingInfo::RatingInfo(uint8_t* data)
+    : country_code(),
+      rating(data[3])
+{
+    memcpy(country_code, data, 3);
+}
+
+ParentalRatingDesc::RatingInfo::~RatingInfo()
 {
 }
 
-//##ModelId=555AFA1C0387
 ParentalRatingDesc::ParentalRatingDesc(uint8_t* data) : Descriptor(data)
 {
     int index = 2;
-    RatingInfo tmp;
+    RatingInfo* tmp;
     while(index < length + 2)
     {
-        memcpy(tmp.country_code, data + index, 3);
-        tmp.rating = data[index + 4];
+        tmp = new RatingInfo(data + index);
         parent_rating_list.push_back(tmp);
         index += 4;
     }
 }
 
-//##ModelId=555AFA380210
 ParentalRatingDesc::~ParentalRatingDesc()
 {
+    std::list<RatingInfo*>::iterator rit = parent_rating_list.begin();
+    for(; rit != parent_rating_list.end(); ++rit)
+        delete (*rit);
 }
 

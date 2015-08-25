@@ -2,31 +2,29 @@
 #define SERVICEDESC_H_HEADER_INCLUDED_AAA531FF
 #include "../Descriptor.h"
 
+//业务类型列表
+const char* const service_type_table[17] = 
+{
+    "", 
+    "数字电视业务",     "数字音频广播业务", "图文电视业务",   "NVOD 参考业务",
+    "NVOD 时移业务",    "马赛克业务",       "PAL 制编码信号", "SECAM 制编码信号",
+    "D/D2-MAC",         "调频广播",         "NTSC 制信号",    "数据广播业务",
+    "公共接口使用预留", "RCS 映射",         "RCS FLS",        "DVB MHP 业务"
+};
+
 //descriptor_tag = 0x48
-//##ModelId=555A8EB30272
 class ServiceDesc : public Descriptor
 {
   public:
-    //##ModelId=555A8EC10111
-    ServiceDesc();
-
-    //##ModelId=555A8EC70294
     ServiceDesc(uint8_t* data);
-
-    //##ModelId=555A8EE702F1
     virtual ~ServiceDesc();
 
     virtual void resolved();
 
-    //##ModelId=555A8EFC0363
     uint8_t service_type;
-    //##ModelId=555A8F190231
     uint8_t service_provider_length;
-    //##ModelId=555A8F360020
     uint8_t* service_provider;
-    //##ModelId=555A8F4802CA
     uint8_t service_name_length;
-    //##ModelId=555A8F4E0048
     uint8_t* service_name;
 };
 

@@ -17,7 +17,7 @@ ObjDsmcc::ObjDsmcc(uint8_t* data)
       object_kind_length((data[13 + object_key_length] << 24) | (data[14 + object_key_length] << 16) |
                          (data[15 + object_key_length] << 8) | (data[16 + object_key_length])),
       object_info_length(data[21 + object_key_length] << 8 | data[22 + object_key_length]),
-      saved(false)
+      parent(NULL)
 {
     memcpy(magic, data, 4);
     object_key = 0;

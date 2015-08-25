@@ -35,6 +35,11 @@ EIT::EventInfo::~EventInfo()
     desc_list.clear();
 }
 
+bool EIT::EventInfo::operator<(const EventInfo& et)
+{
+    return event_id < et.event_id;
+}
+
 EIT::EIT(uint8_t* data, uint16_t len, uint32_t crc)
     : Section(data, len),
       service_id((data[3] << 8) | data[4]), 
@@ -58,8 +63,9 @@ EIT::EIT(uint8_t* data, uint16_t len, uint32_t crc)
 
 EIT::~EIT()
 {
-    std::list<EventInfo*>::iterator eit;
-    for(eit = event_list.begin(); eit != event_list.end(); ++eit)
+    std::set<EventInfo*, cmp_secp<EventInfo>>::iterator 
+        eit = event_list.begin();
+    for(; eit != event_list.end(); ++eit)
     {
         delete (*eit);
     }
@@ -103,7 +109,7 @@ void EIT::getDetail()
     while(index < length - 1)
     {
         EventInfo* ei = new EventInfo(raw_data + index);
-        event_list.push_back(ei);
+        event_list.insert(ei);
         index += 12 + ei->descriptors_loop_length;
     }
 }
@@ -192,8 +198,9 @@ void EIT::resolved()
 
     if(!event_list.empty())
     {
-        std::list<EventInfo*>::iterator eit;
-        for(eit = event_list.begin(); eit != event_list.end(); ++eit)
+        std::set<EventInfo*, cmp_secp<EventInfo>>::iterator 
+            eit = event_list.begin();
+        for(; eit != event_list.end(); ++eit)
         {
             tmp = new TiXmlElement("Event");
             TiXmlElement* tms;
@@ -248,9 +255,4 @@ void EIT::resolved()
     tmp = new TiXmlElement("CRC32");
     tmp->LinkEndChild(new TiXmlText(arr));
     xml->LinkEndChild(tmp);
-}
-
-bool cmp_eitp(EIT* eit1, EIT* eit2)
-{
-    return (*eit1) < (*eit2);
 }

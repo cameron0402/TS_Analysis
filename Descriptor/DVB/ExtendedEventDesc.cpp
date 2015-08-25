@@ -1,13 +1,8 @@
 #include "ExtendedEventDesc.h"
 
-//##ModelId=555AB244012B
-ExtendedEventDesc::ExtendedEventDesc()
-{
-}
-
-//##ModelId=555AB25102B3
 ExtendedEventDesc::ExtendedEventDesc(uint8_t* data) 
     : Descriptor(data),
+      ISO6392_language(),
       descriptor_number(data[2] >> 4),
       last_descriptor_number(data[2] & 0x1f),
       length_of_items(data[6])
@@ -29,7 +24,6 @@ ExtendedEventDesc::ExtendedEventDesc(uint8_t* data)
     memcpy(text, data + 8 + index, text_length);
 }
 
-//##ModelId=555AB27001B9
 ExtendedEventDesc::~ExtendedEventDesc()
 {
     std::list<ItemInfo*>::iterator iit;
@@ -55,7 +49,6 @@ ExtendedEventDesc::ItemInfo::ItemInfo(uint8_t* data)
     memcpy(item, data + 2 + item_description_length, item_length);
 }
 
-//##ModelId=555AB2FD0182
 ExtendedEventDesc::ItemInfo::ItemInfo(const ItemInfo& itf)
 {
     if(&itf == this)
@@ -68,16 +61,10 @@ ExtendedEventDesc::ItemInfo::ItemInfo(const ItemInfo& itf)
     memcpy(item, itf.item, item_length);
 }
 
-//##ModelId=555AB33A00B3
 ExtendedEventDesc::ItemInfo::~ItemInfo()
 {
     delete []item_description;
     delete []item;
-}
-
-//##ModelId=555AB34B0012
-ExtendedEventDesc::ItemInfo::ItemInfo()
-{
 }
 
 void ExtendedEventDesc::resolved()

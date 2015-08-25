@@ -6,10 +6,9 @@
 class ObjDsmcc
 {
 public:
-    ObjDsmcc(uint8_t* data);
     ObjDsmcc();
+    ObjDsmcc(uint8_t* data);
     virtual ~ObjDsmcc();
-
     virtual int uncompressObj();
 
     bool operator <(const ObjDsmcc& odc);
@@ -33,7 +32,7 @@ public:
     //uint8_t* object_info;
 
     uint32_t obj_length;
-    bool saved;
+    ObjDsmcc* parent;
 };
 
 class ObjFactory

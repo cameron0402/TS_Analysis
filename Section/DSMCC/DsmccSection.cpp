@@ -131,11 +131,7 @@ void ESGInfo::saveFile(char* save_path, ObjDsmcc* od)
             fd.object_key = (*bit)->object_key;
             if((fit = obj_list.find(&fd)) != obj_list.end())
             {
-                if(!(*fit)->saved)
-                {
-                    saveFile(path, *fit);
-                    (*fit)->saved = true;
-                }
+                saveFile(path, *fit);
             }
         }
     }
@@ -156,38 +152,13 @@ void ESGInfo::saveFile(char* save_path)
         char path[256];
         sprintf(path, "%s\\%d", save_path, service_id);
         mkdir(path);
-        ObjDsmcc od;
-        std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator fit;
         std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator oit = obj_list.begin();
-        std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator oed = obj_list.end();
-
-        for(; oit != oed; ++oit)
-        {
-            (*oit)->saved = false;
-        }
-
         oit = obj_list.begin();
-        for(; oit != oed; ++oit)
-        {
-            if(((*oit)->object_kind[0] == 'd' && (*oit)->object_kind[1] == 'i' && (*oit)->object_kind[2] == 'r') ||
-               ((*oit)->object_kind[0] == 's' && (*oit)->object_kind[1] == 'r' && (*oit)->object_kind[2] == 'g'))
-            {    
-                std::list<Binding*>::iterator bit = ((ObjDir*)(*oit))->binding_list.begin();
-                for(; bit != ((ObjDir*)(*oit))->binding_list.end(); ++bit)
-                {
-                    sprintf(path, "%s\\%d\\%s", save_path, service_id, (*bit)->bname->id_data);
-                    od.object_key = (*bit)->object_key;
-                    if((fit = obj_list.find(&od)) != oed)
-                    {
-                        if(!(*fit)->saved)
-                        {
-                            saveFile(path, *fit);
-                            (*fit)->saved = true;
-                        }
-                    }
-                }
-            }
-        }
+        ObjDsmcc* odc = (*oit);
+        while(odc != NULL && odc->parent != NULL)
+            odc = odc->parent;
+
+        saveFile(path, odc);       
     }
 }
 
@@ -397,6 +368,27 @@ void ESGInfo::resolved()
             for(; oit != (*mit)->obj_list.end(); ++oit)
             {
                 obj_list.insert(*oit);
+            }
+        }
+    }
+
+    ObjDsmcc od;
+    std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator fit;
+    std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator oed = obj_list.end();
+    std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator oit = obj_list.begin();
+    for(; oit != obj_list.end(); ++oit)
+    {
+        if(((*oit)->object_kind[0] == 'd' && (*oit)->object_kind[1] == 'i' && (*oit)->object_kind[2] == 'r') ||
+            ((*oit)->object_kind[0] == 's' && (*oit)->object_kind[1] == 'r' && (*oit)->object_kind[2] == 'g'))
+        {
+            std::list<Binding*>::iterator bit = ((ObjDir*)(*oit))->binding_list.begin();
+            for(; bit != ((ObjDir*)(*oit))->binding_list.end(); ++bit)
+            {
+                od.object_key = (*bit)->object_key;
+                if((fit = obj_list.find(&od)) != oed)
+                {
+                    (*fit)->parent = (*oit);
+                }
             }
         }
     }

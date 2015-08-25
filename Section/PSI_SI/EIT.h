@@ -14,6 +14,8 @@ class EIT : public Section
         EventInfo(uint8_t* data);
         virtual ~EventInfo();
 
+        bool operator <(const EventInfo& ei);
+
         uint16_t event_id;
         uint8_t start_time[5];
         uint8_t duration[3];
@@ -43,7 +45,7 @@ class EIT : public Section
     uint16_t original_network_id;
     uint8_t segment_last_section_number;
     uint8_t last_table_id;
-    std::list<EventInfo*> event_list;
+    std::set<EventInfo*, cmp_secp<EventInfo>> event_list;
     uint32_t crc32;
 };
 

@@ -38,6 +38,14 @@ ProgInfo::ProgInfo(uint8_t* data)
       program_map_PID(((data[2] & 0x1F) << 8) | data[3]),
       pcr_pid(INVALIDATE_PCR_PID),
       scrambling(false),
+      cur_pcr_int(0),
+      max_pcr_int(0),
+      min_pcr_int(0),
+      cur_pcr_shr(0),
+      max_pcr_shr(0),
+      min_pcr_shr(0),
+      pcr_int_list(MAX_PCR_NUM),
+      pcr_shr_list(MAX_PCR_NUM),
       pcr_list(MAX_PCR_NUM),
       pcr_pkt_list(MAX_PCR_NUM),
       stream_list()
@@ -160,12 +168,13 @@ int TSFactory::adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
         if(pat != NULL)
         {
             std::list<ProgInfo*>::iterator pit = pat->prog_list.begin();
+            bool fst = false;
             for(; pit != pat->prog_list.end(); ++pit)
             {
                 if((*pit)->pcr_pid == raw_ts->PID)
                 {
                     int idx = (*pit)->pcr_list.Size() - 1;
-                    int64_t pcr_pre, pcr_intv, pcr_excp_intv;
+                    int64_t pcr_pre, pcr_intv, pcr_excp_intv, pcr_acu;
                     double inv, tminv, ecbr;
                     if(idx > 0)
                     {
@@ -175,15 +184,36 @@ int TSFactory::adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
                         pcr_excp_intv = ((*pit)->pcr_list[idx] - (*pit)->pcr_list[idx - 1]) *
                                         (pkt_num - (*pit)->pcr_pkt_list[idx]) /
                                         ((*pit)->pcr_pkt_list[idx] - (*pit)->pcr_pkt_list[idx - 1]);
+                        pcr_acu = pcr_excp_intv - pcr_intv;
+                        
+                        if(!fst)
+                        {
+                            if(pcr_acu >= 14 || pcr_acu <= -14)
+                                pcr_acu_err = true;
 
-                        if(pcr_excp_intv - pcr_intv >= 14 || pcr_excp_intv - pcr_intv <= -14)
-                            pcr_acu_err = true;
+                            if(inv > 100 && !adf->discontinuity_indicator)
+                                pcr_dis_err = true;
 
-                        if(inv > 100 && !adf->discontinuity_indicator)
-                            pcr_dis_err = true;
+                            if(inv > 40)
+                                pcr_inv_err = true;  
+                            fst = true;
+                        }
+                        
+                        pcr_acu *= 37;
+                        (*pit)->cur_pcr_shr = pcr_acu;
+                        double tpa = (double)pcr_acu;
+                        (*pit)->pcr_shr_list.Push(tpa);
+                        if(pcr_acu > (*pit)->max_pcr_shr || (*pit)->max_pcr_shr == 0)
+                            (*pit)->max_pcr_shr = pcr_acu;
+                        if(pcr_acu < (*pit)->min_pcr_shr || (*pit)->min_pcr_shr == 0)
+                            (*pit)->min_pcr_shr = pcr_acu;
 
-                        if(inv > 40)
-                            pcr_inv_err = true;                                   
+                        (*pit)->cur_pcr_int = inv;
+                        (*pit)->pcr_int_list.Push(inv);
+                        if(inv > (*pit)->max_pcr_int || (*pit)->max_pcr_int == 0)
+                            (*pit)->max_pcr_int = inv;
+                        if(inv < (*pit)->min_pcr_int || (*pit)->min_pcr_int == 0)
+                            (*pit)->min_pcr_int = inv;
                     }
 
                     if(idx > 10)
@@ -226,8 +256,6 @@ int TSFactory::adaptationFieldAnalysis(uint8_t* ts_packet, TSData* raw_ts,
 
                     (*pit)->pcr_list.Push(pcr);
                     (*pit)->pcr_pkt_list.Push(pkt_num);
-
-                    break;
                 }
             }
         }
@@ -390,9 +418,7 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
 
     /* Continuity check */
     if(!continuityCheck(ts_packet, raw_ts, cc_err))
-    {
         return ;
-    }
 
     /* Unit start -> deal the last Section or PES first, then start gather a new one */
     if(ts_packet[1] & 0x40)
@@ -445,10 +471,6 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
     {
         throw CCErr();
     }
-    if(pcr_acu_err)
-    {
-        throw PcrAcuErr();
-    }
     if(pcr_dis_err)
     {
         throw PcrDisErr();
@@ -457,7 +479,11 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
     {
         throw PcrIntvErr();
     }
-
+    if(pcr_acu_err)
+    {
+        throw PcrAcuErr();
+    }
+  
     return ;
 }
 

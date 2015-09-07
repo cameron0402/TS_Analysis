@@ -6,6 +6,30 @@ AdaptationField::AdaptationField()
 }
 
 AdaptationField::AdaptationField(uint8_t* data)
+    : adaptation_field_length(0), 
+      discontinuity_indicator(false),
+      random_access_indicator(false),
+      elementary_stream_priority_indicator(false),
+      PCR_flag(false),
+      OPCR_flag(false),
+      splicing_pointer_flag(false),
+      transport_private_data_flag(false),
+      adaptation_field_extension_flag(false),
+      program_clock_reference_base(0),
+      program_clock_reference_extension(0),
+      original_program_clock_reference_base(0),
+      original_program_clock_reference_extension(0),
+      splice_countdown(0),
+      transport_private_data_length(0),
+      adaptation_field_extension_length(0),
+      ltw_flag(false),
+      piecewise_rate_flag(false),
+      seamless_splice_flag(false),
+      ltw_valid_flag(false),
+      ltw_offset(0),
+      piecewise_rate(0),
+      splice_type(0),
+      DTS_next_AU(0)
 {
     int idx = 0;
     adaptation_field_length = data[idx++];

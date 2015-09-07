@@ -31,7 +31,7 @@ const int TS_FEC_PACKET_SIZE = 204;
 const int TS_MAX_PACKET_SIZE = 204;
 const int MAX_PID_NUM = 8192;
 
-const int MAX_PCR_NUM = 1000;
+const int MAX_PCR_NUM = 100000;
 const int MAX_PTS_NUM = MAX_PCR_NUM;
 const int MAX_DTS_NUM = MAX_PCR_NUM;
 
@@ -213,6 +213,7 @@ public:
     void Pop();
     int Size();
     int Capacity();
+    bool Empty();
 
     T& Front();
     T& operator[](int idx);
@@ -234,6 +235,12 @@ LimitQueue<T>::LimitQueue(int sz)
 template<class T>
 LimitQueue<T>::~LimitQueue()
 {
+}
+
+template<class T>
+bool LimitQueue<T>::Empty()
+{
+    return size == 0;
 }
 
 template<class T>

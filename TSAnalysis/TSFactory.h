@@ -44,6 +44,16 @@ public:
     uint16_t pcr_pid;
     bool scrambling;
 
+    double cur_pcr_int;
+    double max_pcr_int;
+    double min_pcr_int;
+
+    int64_t cur_pcr_shr;
+    int64_t max_pcr_shr;
+    int64_t min_pcr_shr;
+
+    LimitQueue<double> pcr_shr_list;
+    LimitQueue<double> pcr_int_list; 
     LimitQueue<int64_t> pcr_list;
     LimitQueue<uint32_t> pcr_pkt_list; 
     std::list<Stream*> stream_list;

@@ -6,7 +6,11 @@ Stream::Stream(PMT::StreamInfo* si)
     : stream_pid(si->elem_PID),
       scrambling(false),
       pts_list(MAX_PTS_NUM),
-      dts_list(MAX_DTS_NUM)
+      dts_list(MAX_DTS_NUM),
+      pts_pcr_list(MAX_PTS_NUM),
+      dts_pcr_list(MAX_DTS_NUM),
+      pts_int_list(MAX_PTS_NUM),
+      dts_int_list(MAX_DTS_NUM)
 {
     int i = 0;
     for(;;i++)
@@ -94,7 +98,7 @@ bool TSFactory::addSection(Section* section)
 }
 
 //it's a simple version of TSGather without any check
-void TSFactory::ESGather(int pid, uint8_t* ts_packet, std::ofstream& of)
+void TSFactory::ESGather(int pid, uint8_t* ts_packet, FILE* of)
 {
     uint8_t* payload_pos = NULL;
     uint8_t* p_new_pos = NULL;
@@ -131,7 +135,7 @@ void TSFactory::ESGather(int pid, uint8_t* ts_packet, std::ofstream& of)
             raw_ts->getPES();
             if(raw_ts->pes->PES_packet_data_length != 0)
             {
-                of.write((const char*)raw_ts->pes->PES_packet_data, raw_ts->recv_length - raw_ts->pes->PES_packet_data_length);
+                fwrite((const char*)raw_ts->pes->PES_packet_data, raw_ts->recv_length - raw_ts->pes->PES_packet_data_length, 1, of);
             }
             raw_ts->Reset();
         }
@@ -345,22 +349,52 @@ void TSFactory::PESAnalysis(TSData* raw_ts)
                     if(!(*sit)->scrambling)
                     {
                         (*sit)->pts_list.Push(raw_ts->pes->PTS);
+                        (*sit)->dts_list.Push(raw_ts->pes->DTS);
+                        int pcr_idx = (*pit)->pcr_list.Size() - 1;
+                        int64_t pcr1 = 0, pcr2 = 0;
+                        uint32_t pkt1 = 0, pkt2 = 0;
+                        double exp_pcr = 0;
+                        while(pcr_idx >= 1)
+                        {
+                            if(raw_ts->first_pkt_idx > (*pit)->pcr_pkt_list[pcr_idx])
+                                break;
+                            --pcr_idx;
+                        }
+
+                        if(pcr_idx >= 1)
+                        {
+                            pcr1 = (*pit)->pcr_list[pcr_idx];
+                            pcr2 = (*pit)->pcr_list[pcr_idx - 1];
+                            pkt1 = (*pit)->pcr_pkt_list[pcr_idx];
+                            pkt2 = (*pit)->pcr_pkt_list[pcr_idx - 1];
+                            exp_pcr = ((raw_ts->first_pkt_idx - pkt1) * (pcr1 - pcr2) / (pkt1 - pkt2) + pcr1) / (double)300;
+                        }
+
                         int idx = (*sit)->pts_list.Size() - 1;
                         if(idx > 0)
-                        {
-                            int64_t inv= (*sit)->pts_list[idx] - (*sit)->pts_list[idx - 1];
-                            double pts_inv = (double)(inv / 90);
+                        {                        
+                            int64_t inv= (*sit)->dts_list[idx] - (*sit)->dts_list[idx - 1];
+                            double dts_inv = inv / (double)90;                    
+                            (*sit)->dts_int_list.Push(dts_inv);
+                                                        
+                            inv= (*sit)->pts_list[idx] - (*sit)->pts_list[idx - 1];
+                            double pts_inv = inv / (double)90;
+                            (*sit)->pts_int_list.Push(pts_inv);
+
+                            if(exp_pcr != 0)
+                            {
+                                double pts_pcr = ((*sit)->pts_list[idx] - exp_pcr) / (double)90;
+                                double dts_pcr = ((*sit)->dts_list[idx] - exp_pcr) / (double)90;
+                                (*sit)->pts_pcr_list.Push(pts_pcr);
+                                (*sit)->dts_pcr_list.Push(dts_pcr);
+                            }
+
                             if(pts_inv > 700 || pts_inv < -700)
                             {
-                                std::cout << "pts error!" << std::endl;
+                                throw PtsErr();
                             }
                         }
-                        
-                        if(raw_ts->pes->PTS_DTS_flags & 0x01)
-                        {
-                            (*sit)->dts_list.Push(raw_ts->pes->DTS);
-                        }
-                    }                   
+                    } 
                 }
             }
         }
@@ -441,6 +475,7 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
             {
                 PESAnalysis(raw_ts);
                 raw_ts->Reset();
+                raw_ts->first_pkt_idx = pkt_num;
             }
             raw_ts->recv_flag = true;
             raw_ts->ts_data_length = ((payload_pos[4] << 8) | payload_pos[5]) + 6;

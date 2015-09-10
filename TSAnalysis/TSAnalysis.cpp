@@ -6,10 +6,12 @@ TSAnalysis::TSAnalysis(char* infile)
     : ts_err(),
       err_xml(new TiXmlElement("ERROR_LOG")),
       sf(NULL),
-      in_ts_file(infile),
-      inf(infile, std::ifstream::binary),
+      in_ts_file(),
+      inf(NULL),
       analyzing(false)
 {
+    //inf = fopen(infile, "rb");
+    strcpy(in_ts_file, infile);
 }
 
 
@@ -22,7 +24,9 @@ TSAnalysis::~TSAnalysis()
         delete sf;
         sf = NULL;
     }
-    inf.close();
+
+    if(inf != NULL)
+        fclose(inf);
 }
 
 int TSAnalysis::analyze(const uint8_t* buf, int size, int packet_size, int* index)
@@ -89,14 +93,16 @@ int TSAnalysis::synchronous()
 {
     int idx = 0;
     char buf[TS_MAX_PACKET_SIZE * 6] = {0};
-    inf.seekg(-pkt_sz, inf.cur);
+    //inf.seekg(-pkt_sz, inf.cur);
+    fseek(inf, -pkt_sz, SEEK_CUR);
 
     TiXmlElement* err = new TiXmlElement("err");
     err->SetAttribute("num", ts_err.err);
-    err->SetAttribute("time", inf.tellg());
+    err->SetAttribute("time", ftell(inf));
     err->SetAttribute("pos", "");
 
-    inf.read(buf, TS_MAX_PACKET_SIZE * 6);
+    //inf.read(buf, TS_MAX_PACKET_SIZE * 6);
+    fread(buf, TS_MAX_PACKET_SIZE * 6, 1, inf);
 
     while(idx < pkt_sz * 3)
     {
@@ -120,7 +126,8 @@ int TSAnalysis::synchronous()
 
                 err_xml->LinkEndChild(err);
                 
-                inf.seekg(idx - TS_MAX_PACKET_SIZE * 6, inf.cur);
+                //inf.seekg(idx - TS_MAX_PACKET_SIZE * 6, inf.cur);
+                fseek(inf, idx - TS_MAX_PACKET_SIZE * 6, SEEK_CUR);
 
                 return idx;
             }
@@ -131,14 +138,22 @@ int TSAnalysis::synchronous()
     return -1;
 }
 
+//char* TSAnalysis::get_analysis_file()
+//{
+//    return in_ts_file;
+//}
+
 void TSAnalysis::save_es(int pid, char* es_file)
 {
     uint16_t tpid;
     uint8_t test_buf[TS_MAX_PACKET_SIZE * 6] = {0};
-    inf.seekg(0, inf.beg);
-    inf.read((char*)test_buf, TS_MAX_PACKET_SIZE * 6);
-    std::ofstream of(es_file, std::ios_base::binary);
-
+    /*if(inf == NULL)
+    return ;
+    clearerr(inf);
+    fseek(inf, 0, SEEK_SET);*/
+    inf = fopen(in_ts_file, "rb");
+    fread((char*)test_buf, TS_MAX_PACKET_SIZE * 6, 1, inf);
+   
     int st_idx = 0;
     int pkt_sz = 0;
     pkt_sz = get_packet_size(test_buf, TS_MAX_PACKET_SIZE * 6, &st_idx);
@@ -147,24 +162,36 @@ void TSAnalysis::save_es(int pid, char* es_file)
         std::cout << "can't find the sync-byte and can't analysis the TS!\n";
         return ;
     }
+    fseek(inf, st_idx, SEEK_SET);
 
-    inf.seekg(st_idx, inf.beg);
+    FILE* of = fopen(es_file, "wb");
+    if(of == NULL)
+        return ;
+
     sf = TSFactory::GetInstance();
-    while(!inf.eof())
+    while(!feof(inf))
     {
-        inf.read((char*)test_buf, pkt_sz);
+        //inf.read((char*)test_buf, pkt_sz);
+        fread(test_buf, pkt_sz, 1, inf);
         tpid = ((test_buf[1] & 0x1F) << 8) | test_buf[2];
         if(tpid == pid)
             sf->ESGather(pid, test_buf, of);
     }
+    fclose(inf);
+    fclose(of);
 }
 
 void TSAnalysis::ts_analysis()
 {
     uint16_t pid;
     uint8_t test_buf[TS_MAX_PACKET_SIZE * 6] = {0};
-    inf.seekg(0, inf.beg);
-    inf.read((char*)test_buf, TS_MAX_PACKET_SIZE * 6);
+    /*if(inf == NULL)
+    return ;
+
+    clearerr(inf);
+    fseek(inf, 0, SEEK_SET);*/
+    inf = fopen(in_ts_file, "rb");
+    fread((char*)test_buf, TS_MAX_PACKET_SIZE * 6, 1, inf);
 
     analyzing = true;
 
@@ -177,13 +204,15 @@ void TSAnalysis::ts_analysis()
         return ;
     }
 
-    inf.seekg(st_idx, inf.beg);
+    fseek(inf, st_idx, SEEK_SET);
+    //inf.seekg(st_idx, inf.beg);
     sf = TSFactory::GetInstance();
-    while(!inf.eof())
+    while(!feof(inf))
     {
         try
         {
-            inf.read((char*)test_buf, pkt_sz);
+            //inf.read((char*)test_buf, pkt_sz);
+            fread(test_buf, pkt_sz, 1, inf);
             if(test_buf[0] != 0x47)
                 throw SyncErr();
 
@@ -206,7 +235,7 @@ void TSAnalysis::ts_analysis()
         {
             TiXmlElement* err = new TiXmlElement("err");
             err->SetAttribute("num", ts_err.err);
-            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("time", ftell(inf));
             err->SetAttribute("pos", "");
             err->SetAttribute("type", "PAT错误");
             if(pe.type = PatErr::PTID)
@@ -235,7 +264,7 @@ void TSAnalysis::ts_analysis()
             sprintf(info, "PID = 0x%x", pid);
             TiXmlElement* err = new TiXmlElement("err");
             err->SetAttribute("num", ts_err.err);
-            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("time", ftell(inf));
             err->SetAttribute("pos", info);
             err->SetAttribute("type", "连续计数错误");
             err->SetAttribute("desc", "TS包连续计数错误");
@@ -249,7 +278,7 @@ void TSAnalysis::ts_analysis()
         {
             TiXmlElement* err = new TiXmlElement("err");
             err->SetAttribute("num", ts_err.err);
-            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("time", ftell(inf));
             err->SetAttribute("pos", "");
             err->SetAttribute("type", "PMT错误");
             if(me.type = PmtErr::PINTV)
@@ -271,7 +300,7 @@ void TSAnalysis::ts_analysis()
         {
             TiXmlElement* err = new TiXmlElement("err");
             err->SetAttribute("num", ts_err.err);
-            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("time", ftell(inf));
             err->SetAttribute("pos", "");
             err->SetAttribute("type", "传输错误");
             err->SetAttribute("desc", "TS包传输错误指示为1");
@@ -284,7 +313,7 @@ void TSAnalysis::ts_analysis()
         {
             TiXmlElement* err = new TiXmlElement("err");
             err->SetAttribute("num", ts_err.err);
-            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("time", ftell(inf));
             err->SetAttribute("pos", "");
             err->SetAttribute("type", "CRC错误");
             if(ce.type == CrcErr::CPAT)
@@ -336,7 +365,7 @@ void TSAnalysis::ts_analysis()
         {
             TiXmlElement* err = new TiXmlElement("err");
             err->SetAttribute("num", ts_err.err);
-            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("time", ftell(inf));
             err->SetAttribute("pos", "");
             err->SetAttribute("type", "PCR间隔错误");
             err->SetAttribute("desc", "PCR间隔大于40ms");
@@ -349,7 +378,7 @@ void TSAnalysis::ts_analysis()
         {
             TiXmlElement* err = new TiXmlElement("err");
             err->SetAttribute("num", ts_err.err);
-            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("time", ftell(inf));
             err->SetAttribute("pos", "");
             err->SetAttribute("type", "PCR不连续错误");
             err->SetAttribute("desc", "未设置不连续标志且PCR间隔大于100ms");
@@ -362,7 +391,7 @@ void TSAnalysis::ts_analysis()
         {
             TiXmlElement* err = new TiXmlElement("err");
             err->SetAttribute("num", ts_err.err);
-            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("time", ftell(inf));
             err->SetAttribute("pos", "");
             err->SetAttribute("type", "PCR精度错误");
             err->SetAttribute("desc", "PCR精度超过正负500ns");
@@ -376,7 +405,7 @@ void TSAnalysis::ts_analysis()
         {
             TiXmlElement* err = new TiXmlElement("err");
             err->SetAttribute("num", ts_err.err);
-            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("time", ftell(inf));
             err->SetAttribute("pos", "");
             err->SetAttribute("type", "PTS错误");
             err->SetAttribute("desc", "PTS间隔超过700ms");
@@ -389,7 +418,7 @@ void TSAnalysis::ts_analysis()
         {
             TiXmlElement* err = new TiXmlElement("err");
             err->SetAttribute("num", ts_err.err);
-            err->SetAttribute("time", inf.tellg());
+            err->SetAttribute("time", ftell(inf));
             err->SetAttribute("pos", "");
             err->SetAttribute("type", "CAT错误");
             if(ae.type == CatErr::CSRB)
@@ -411,6 +440,6 @@ void TSAnalysis::ts_analysis()
 
         }   
     }
-
+    fclose(inf);
     analyzing = false;
 }

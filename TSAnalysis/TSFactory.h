@@ -28,6 +28,10 @@ public:
 
     LimitQueue<int64_t> pts_list;
     LimitQueue<int64_t> dts_list;
+    LimitQueue<double> pts_int_list;
+    LimitQueue<double> dts_int_list;
+    LimitQueue<double> pts_pcr_list;
+    LimitQueue<double> dts_pcr_list;
 };
 
 class ProgInfo
@@ -67,7 +71,7 @@ public:
     virtual Section* createSectoin(TSData* raw_section);
     static TSFactory* GetInstance();
     void TSGather(int pid, uint8_t* ts_packet);
-    void ESGather(int pid, uint8_t* ts_packet, std::ofstream& of);
+    void ESGather(int pid, uint8_t* ts_packet, FILE* of);
     
     PAT* pat;
     std::set<PMT*, cmp_secp<PMT>> pmt_list;

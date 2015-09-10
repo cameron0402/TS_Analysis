@@ -140,18 +140,19 @@ void PES::getDetail()
         if(PTS_DTS_flags == 0x02)
         {
             PTS = ((((int64_t)raw_data[idx] >> 1) & 0x7) << 30) | (raw_data[idx + 1] << 22) | 
-                  ((raw_data[idx + 2] >> 1) << 15) | (raw_data[idx + 3] << 8) | (raw_data[idx + 4] >> 1);
+                  ((raw_data[idx + 2] >> 1) << 15) | (raw_data[idx + 3] << 7) | (raw_data[idx + 4] >> 1);
+            DTS = PTS;
             idx += 5;
         }
 
         if(PTS_DTS_flags == 0x03)
         {
             PTS = ((((int64_t)raw_data[idx] >> 1) & 0x7) << 30) | (raw_data[idx + 1] << 22) | 
-                  ((raw_data[idx + 2] >> 1) << 15) | (raw_data[idx + 3] << 8) | (raw_data[idx + 4] >> 1);
+                  ((raw_data[idx + 2] >> 1) << 15) | (raw_data[idx + 3] << 7) | (raw_data[idx + 4] >> 1);
             idx += 5;
 
             DTS = ((((int64_t)raw_data[idx] >> 1) & 0x7) << 30) | (raw_data[idx + 1] << 22) | 
-                  ((raw_data[idx + 2] >> 1) << 15) | (raw_data[idx + 3] << 8) | (raw_data[idx + 4] >> 1);
+                  ((raw_data[idx + 2] >> 1) << 15) | (raw_data[idx + 3] << 7) | (raw_data[idx + 4] >> 1);
             idx += 5;
         }
 

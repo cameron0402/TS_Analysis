@@ -74,7 +74,8 @@ TSData::TSData(uint16_t pid)
       min_bit_rate(0),
       cur_bit_rate(0),
       pes(NULL),
-      recv_flag(false)
+      recv_flag(false),
+      first_pkt_idx(0)
 {    
     ts_data = (uint8_t*)malloc(TSData::MAX_TS_LENGTH);
     pes = new PES(ts_data);
@@ -102,4 +103,5 @@ void TSData::Reset()
     discontinuity_flag = false;
     crc = 0xFFFFFFFF;
     recv_flag = false;
+    //first_pkt_idx = 0;
 }

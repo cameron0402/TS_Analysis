@@ -66,6 +66,7 @@ public:
 
     void ts_analysis();
     void save_es(int pid, char* es_file);
+    //char* get_analysis_file();
 
     TS_err ts_err;
     TiXmlElement* err_xml;
@@ -79,8 +80,8 @@ private:
 
     int synchronous(); //when sync_err occurs, this function to find the sync byte again
 
-    std::ifstream inf;
-    char* in_ts_file;
+    FILE* inf;
+    char in_ts_file[128];
 };
 
 #endif

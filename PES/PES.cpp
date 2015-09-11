@@ -21,8 +21,8 @@ PES::PES(uint8_t* rd)
 
 PES::~PES()
 {
-    if(raw_data != NULL)
-        delete []raw_data;
+    //if(raw_data != NULL)
+    //    delete []raw_data;
 }
 
 void PES::Reset()

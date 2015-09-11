@@ -8,6 +8,7 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <time.h>
 #include "XML/tinyxml.h"
 #include "CodeTrans/UTF_GB.h"
 #include "excp.h"

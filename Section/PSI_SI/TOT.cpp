@@ -11,7 +11,7 @@ TOT::TOT(uint8_t* data, uint16_t len, uint32_t crc)
     if(crc != 0xFFFFFFFF)
     {
         if(crc != crc32)
-            throw CrcErr(CrcErr::CTOT);
+            throw new CrcErr(CrcErr::CTOT);
     }
     memcpy(UTC_time, data + 3, 5);
 }

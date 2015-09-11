@@ -69,8 +69,8 @@ ObjDir::ObjDir(uint8_t* data)
 
 ObjDir::~ObjDir()
 {
-    std::list<Binding*>::iterator bit;
-    for(bit = binding_list.begin(); bit != binding_list.end(); ++bit)
+    std::list<Binding*>::iterator bit = binding_list.begin();
+    for(; bit != binding_list.end(); ++bit)
         delete (*bit);
     binding_list.clear();
 }

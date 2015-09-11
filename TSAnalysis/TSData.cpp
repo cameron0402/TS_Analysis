@@ -85,6 +85,7 @@ TSData::TSData(uint16_t pid)
 TSData::~TSData()
 {
     free(ts_data);
+    delete pes;
 }
 
 void TSData::getPES()

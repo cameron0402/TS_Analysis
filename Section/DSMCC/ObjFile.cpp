@@ -28,7 +28,7 @@ ObjFile::ObjFile(uint8_t* data)
 
 ObjFile::~ObjFile()
 {
-
+    delete []file_content;
 }
 
 

@@ -13,12 +13,12 @@ PAT::PAT(uint8_t* data, uint16_t len, uint32_t crc)
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
     if(table_id != 0x0)
-        throw PatErr(PatErr::PTID);
+        throw new PatErr(PatErr::PTID);
 
     if(crc != 0xFFFFFFFF)
     {
         if(crc != crc32)
-            throw CrcErr(CrcErr::CPAT);
+            throw new CrcErr(CrcErr::CPAT);
     }
 }
 

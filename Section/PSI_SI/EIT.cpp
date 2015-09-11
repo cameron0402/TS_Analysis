@@ -57,7 +57,7 @@ EIT::EIT(uint8_t* data, uint16_t len, uint32_t crc)
     if(crc != 0xFFFFFFFF)
     {
         if(crc != crc32)
-            throw CrcErr(CrcErr::CEIT);
+            throw new CrcErr(CrcErr::CEIT);
     }
 }
 

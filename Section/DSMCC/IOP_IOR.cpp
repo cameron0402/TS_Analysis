@@ -226,4 +226,5 @@ IOP_IOR::~IOP_IOR()
     std::list<BIOPProfile*>::iterator pit;
     for(pit = biop_pf_list.begin(); pit != biop_pf_list.end(); ++pit)
         delete (*pit);
+    biop_pf_list.clear();
 }

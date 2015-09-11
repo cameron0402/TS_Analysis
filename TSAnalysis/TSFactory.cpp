@@ -391,7 +391,7 @@ void TSFactory::PESAnalysis(TSData* raw_ts)
 
                             if(pts_inv > 700 || pts_inv < -700)
                             {
-                                throw PtsErr();
+                                throw new PtsErr();
                             }
                         }
                     } 
@@ -504,19 +504,19 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
 
     if(cc_err)
     {
-        throw CCErr();
+        throw new CCErr();
     }
     if(pcr_dis_err)
     {
-        throw PcrDisErr();
+        throw new PcrDisErr();
     }
     if(pcr_inv_err)
     {
-        throw PcrIntvErr();
+        throw new PcrIntvErr();
     }
     if(pcr_acu_err)
     {
-        throw PcrAcuErr();
+        throw new PcrAcuErr();
     }
   
     return ;
@@ -532,7 +532,7 @@ Section* TSFactory::createSectoin(TSData* raw_section)
     if(type == 0x00)
     {
         if(srbf)
-            throw PatErr(PatErr::PSRB);
+            throw new PatErr(PatErr::PSRB);
         raw_section->get_crc();
         return new PAT(data, len, raw_section->crc);
     }
@@ -583,7 +583,7 @@ Section* TSFactory::createSectoin(TSData* raw_section)
             if((*pit)->program_number != 0 && type == (*pit)->program_map_PID)
             {
                 if(srbf)
-                    throw PmtErr(PmtErr::PSRB);
+                    throw new PmtErr(PmtErr::PSRB);
 
                 raw_section->get_crc();
                 return new PMT(data, len, raw_section->crc);

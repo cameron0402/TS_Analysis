@@ -103,6 +103,11 @@ ESGInfo::~ESGInfo()
         delete (*dit);
     }
 
+    /*std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator oit = obj_list.begin();
+    for(; oit != obj_list.end(); ++oit)
+    {
+    delete (*oit);
+    }*/
     obj_list.clear();
 }
 
@@ -402,11 +407,18 @@ void ESGInfo::reset()
         dsi = NULL;
     }
 
-    std::set<DII*, cmp_secp<DII>>::iterator dit;
-    for(dit = dii_list.begin(); dit != dii_list.end(); ++dit)
+    std::set<DII*, cmp_secp<DII>>::iterator dit = dii_list.begin();
+    for(; dit != dii_list.end(); ++dit)
     {
         delete (*dit);
     }
     dii_list.clear();
+
+    std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator oit = obj_list.begin();
+    for(; oit != obj_list.end(); ++oit)
+    {
+        delete (*oit);
+    }
+    obj_list.clear();    
 }
 

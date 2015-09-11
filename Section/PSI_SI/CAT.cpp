@@ -14,12 +14,12 @@ CAT::CAT(uint8_t* data, uint16_t len, uint32_t crc)
       crc32((data[len - 4] << 24) | (data[len - 3] << 16) | (data[len - 2] << 8) | data[len - 1])
 {
     if(table_id != 0x1)
-        throw CatErr(CatErr::CTID);
+        throw new CatErr(CatErr::CTID);
 
     if(crc != 0xFFFFFFFF)
     {
         if(crc != crc32)
-            throw CrcErr(CrcErr::CCAT);
+            throw new CrcErr(CrcErr::CCAT);
     }
 }
 

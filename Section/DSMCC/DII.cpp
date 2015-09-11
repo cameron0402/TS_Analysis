@@ -138,8 +138,8 @@ DII::Module::~Module()
     if(module_data != NULL)
         delete []module_data;
 
-    std::list<ObjDsmcc*>::iterator oit;
-    for(oit = obj_list.begin(); oit != obj_list.end(); ++oit)
+    std::list<ObjDsmcc*>::iterator oit= obj_list.begin();
+    for(; oit != obj_list.end(); ++oit)
     {
         delete (*oit);
     }
@@ -261,9 +261,14 @@ DII::DII(uint8_t* data)
 
 DII::~DII()
 {
+    if(dsmh != NULL)
+        delete dsmh;
+
     std::set<DII::Module*, cmp_secp<Module>>::iterator mit;
     for(mit = mod_list.begin(); mit != mod_list.end(); ++mit)
         delete (*mit);
+
+    delete []raw_dii_data;
 }
 
 bool DII::operator<(const DII& dii)

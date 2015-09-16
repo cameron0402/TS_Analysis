@@ -437,6 +437,7 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
 
     ++pkt_num;
     ++raw_ts->pkt_num;
+    raw_ts->gl_pkt_vec.push_back(pkt_num);
 
     if(pid == 0x1FFF)
     {

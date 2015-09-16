@@ -58,6 +58,12 @@ DII::Module::Module(uint8_t* data, uint16_t blk_sz)
     block_map = new uint8_t[block_sum];
     memset(block_map, 0, block_sum);
 
+   /* if(module_size > 1000000)
+    {
+        module_size = 1;
+        recv_completed = true;
+        err_flag = true;
+    }*/
     module_data = new uint8_t[module_size];
 }
 
@@ -85,6 +91,9 @@ int DII::Module::uncompress_module()
 void DII::Module::resolved()
 {
     if(!recv_completed)
+        return ;
+
+    if(module_data == NULL)
         return ;
 
     if(position != 0xFF && position != 0x00)
@@ -116,7 +125,9 @@ void DII::Module::resolved()
             break;
         }
     }
-    
+
+    delete []module_data;
+    module_data = NULL;    
 }
 
 bool DII::Module::operator<(const Module& md)
@@ -227,6 +238,9 @@ uint32_t DII::get_check_sum()
 
 void DII::getDetail()
 {
+    if(raw_dii_data == NULL)
+        return ;
+
     uint8_t* pd = raw_dii_data + 12 + dsmh->adaptation_length;
     downloadID = (pd[0] << 24) | (pd[1] << 16) | (pd[2] << 8) | (pd[3]);
     block_size = (pd[4] << 8) | pd[5];
@@ -244,11 +258,16 @@ void DII::getDetail()
     for(i = 0; i < module_number; ++i)
     {
         DII::Module* md = new DII::Module(pd + idx, block_size);
+        /*if(md->err_flag)
+            throw DsmccErr();*/
         mod_list.insert(md);
         idx += md->module_info_length + 8;
     }
 
     private_data_length = (pd[idx] << 8) | pd[idx + 1];
+
+    delete []raw_dii_data;
+    raw_dii_data = NULL;
 }
 
 DII::DII(uint8_t* data)
@@ -268,7 +287,8 @@ DII::~DII()
     for(mit = mod_list.begin(); mit != mod_list.end(); ++mit)
         delete (*mit);
 
-    delete []raw_dii_data;
+    if(raw_dii_data != NULL)
+        delete []raw_dii_data;
 }
 
 bool DII::operator<(const DII& dii)

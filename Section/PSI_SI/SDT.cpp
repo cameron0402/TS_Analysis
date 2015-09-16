@@ -113,6 +113,9 @@ bool SDT::joinTo(TSFactory* sf)
 
 void SDT::getDetail()
 {
+    if(raw_data == NULL)
+        return ;
+
     int index = 11;
     while(index < length - 1)
     {
@@ -120,6 +123,9 @@ void SDT::getDetail()
         service_list.push_back(si);
         index += 5 + si->descriptors_loop_length;
     }
+
+    delete []raw_data;
+    raw_data = NULL;
 }
 
 void SDT::resolved()

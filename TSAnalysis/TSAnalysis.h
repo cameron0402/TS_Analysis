@@ -93,11 +93,15 @@ public:
 
     void ts_analysis();
     void save_es(int pid, char* es_file);
+    uint8_t* get_ts(uint16_t pid, uint32_t pkt_idx);
+    //uint8_t* get_section(int pid, int pkt_st, int pkt_idx);
+    //uint8_t* get_pes(int pid, int pkt_st, int pkt_idx);
     //char* get_analysis_file();
 
     TS_err ts_err;
     TSFactory* sf;
     int pkt_sz;
+    int st_idx; //address of first 0x47 
     bool analyzing;
 
 private:

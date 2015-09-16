@@ -195,6 +195,9 @@ bool PMT::operator<(const PMT& pt)
 
 void PMT::getDetail()
 {
+    if(raw_data == NULL)
+        return ;
+
     int index = 0;
     uint8_t* pd = raw_data + 12;
     DescFactory des_fac;
@@ -212,6 +215,9 @@ void PMT::getDetail()
         index += si->info_length + 5;
         stream_list.push_back(si);
     }
+
+    delete []raw_data;
+    raw_data = NULL;
 }
 
 void PMT::resolved()

@@ -65,6 +65,9 @@ bool CAT::joinTo(TSFactory* sf)
 
 void CAT::getDetail()
 {
+    if(raw_data == NULL)
+        return ;
+
     int index = 8;
     DescFactory des_fac;
     while(index < length - 1)
@@ -73,6 +76,9 @@ void CAT::getDetail()
         index += des->length + 2;
         desc_list.push_back(des);
     }
+
+    delete []raw_data;
+    raw_data = NULL;
 }
 
 bool CAT::operator==(const CAT& ct)

@@ -71,6 +71,7 @@ public:
         uint8_t* module_data;
 
         std::list<ObjDsmcc*> obj_list;
+        //bool err_flag;
     };
 
     DII();

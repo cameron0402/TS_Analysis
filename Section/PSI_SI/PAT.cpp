@@ -34,6 +34,9 @@ PAT::~PAT()
 
 void PAT::getDetail()
 {
+    if(raw_data == NULL)
+        return ;
+
     int index = 8;
     while(index < length - 4)
     {
@@ -41,6 +44,9 @@ void PAT::getDetail()
         prog_list.push_back(pi);
         index += 4;
     }
+
+    delete []raw_data;
+    raw_data = NULL;
 }
 
 bool PAT::joinTo(TSFactory* sf)

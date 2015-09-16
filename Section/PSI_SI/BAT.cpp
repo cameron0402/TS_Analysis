@@ -103,6 +103,9 @@ bool BAT::joinTo(TSFactory* sf)
 
 void BAT::getDetail()
 {
+    if(raw_data == NULL)
+        return ;
+
     int index = 0;
     uint8_t* sub_data = raw_data + 10;
     DescFactory des_fac;
@@ -121,5 +124,8 @@ void BAT::getDetail()
         index += 6 + tsi->transport_descriptors_length;
         streaminfo_list.push_back(tsi);
     }
+
+    delete []raw_data;
+    raw_data = NULL;
 }
 

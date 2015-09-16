@@ -35,7 +35,9 @@ class TSData
  
     uint32_t crc;
     uint32_t pkt_num;
-    uint32_t first_pkt_idx;
+    uint32_t first_pkt_idx; //for pes or section
+
+    std::vector<uint32_t> gl_pkt_vec;
 
     LimitQueue<uint32_t> pcr_pkt_list;
     double max_bit_rate;

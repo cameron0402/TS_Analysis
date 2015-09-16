@@ -105,6 +105,9 @@ bool EIT::operator<(const EIT& et)
 
 void EIT::getDetail()
 {
+    if(raw_data == NULL)
+        return ;
+
     int index = 14;
     while(index < length - 1)
     {
@@ -112,6 +115,9 @@ void EIT::getDetail()
         event_list.insert(ei);
         index += 12 + ei->descriptors_loop_length;
     }
+
+    delete []raw_data;
+    raw_data = NULL;
 }
 
 bool EIT::joinTo(TSFactory* sf)

@@ -38,6 +38,9 @@ bool TOT::joinTo(TSFactory* sf)
 
 void TOT::getDetail()
 {
+    if(raw_data == NULL)
+        return ;
+
     int index = 10;
     DescFactory des_fac;
     while(index < length - 4)
@@ -46,6 +49,9 @@ void TOT::getDetail()
         desc_list.push_back(des);
         index += des->length + 2;
     }
+
+    delete []raw_data;
+    raw_data = NULL;
 }
 
 void TOT::resolved()

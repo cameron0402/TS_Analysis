@@ -7,6 +7,8 @@ TSAnalysis::TSAnalysis(char* infile)
       sf(NULL),
       in_ts_file(),
       inf(NULL),
+      pkt_sz(0),
+      st_idx(-1),
       analyzing(false)
 {
     //inf = fopen(infile, "rb");
@@ -182,6 +184,24 @@ void TSAnalysis::save_es(int pid, char* es_file)
     fclose(of);
 }
 
+uint8_t* TSAnalysis::get_ts(uint16_t pid, uint32_t pkt_idx)
+{
+    if(pkt_sz == 0)
+        return NULL;
+
+    uint8_t* ts = new uint8_t[pkt_sz];
+    FILE* fp = fopen(in_ts_file, "rb");
+    if(fp != NULL)
+    {
+        fseek(fp, st_idx + pkt_idx * pkt_sz, SEEK_SET);
+        fread(ts, pkt_sz, 1, fp);
+        fclose(fp);
+        return ts;
+    }
+
+    return NULL;
+}
+
 void TSAnalysis::ts_analysis()
 {
     uint16_t pid;
@@ -196,7 +216,6 @@ void TSAnalysis::ts_analysis()
 
     analyzing = true;
 
-    int st_idx = 0;
     pkt_sz = get_packet_size(test_buf, TS_MAX_PACKET_SIZE * 6, &st_idx);
     if(pkt_sz == -1)
     {
@@ -402,6 +421,14 @@ void TSAnalysis::ts_analysis()
 
         }   
     }
+
+    std::list<ESGInfo*>::iterator esit = sf->esg_list.begin();
+    for(; esit != sf->esg_list.end(); ++esit)
+    {
+        delete (*esit);
+    }
+    sf->esg_list.clear();
+
     fclose(inf);
     analyzing = false;
 }

@@ -35,14 +35,20 @@ static char* ts_err_desc[][2] =
 class TsErr
 {
 public:
+    TsErr(uint16_t p = 0xFFFF) : pid(p){}
     std::string pos;
     std::string time;
     int des_idx;
+    uint16_t pid;
 
     virtual ~TsErr(){};
 };
 
-class SyncErr : public TsErr{};
+class SyncErr : public TsErr
+{
+public:
+   SyncErr() : TsErr() {}
+};
 
 class PatErr : public TsErr
 {
@@ -50,12 +56,15 @@ public:
     enum pat_type {PTID = 0, PINTV, PSRB};
     pat_type type;
 
-    PatErr(){}
-    PatErr(pat_type tp) : type(tp){}
+    PatErr(pat_type tp) : TsErr(), type(tp){}
     virtual ~PatErr(){}
 };
 
-class CCErr : public TsErr{};
+class CCErr : public TsErr
+{
+public:
+    CCErr(uint16_t p) : TsErr(p){}
+};
 
 class PmtErr : public TsErr
 {
@@ -63,12 +72,15 @@ public:
     enum pmt_type {PINTV = 0, PSRB};
     pmt_type type;
 
-    PmtErr(){}
-    PmtErr(pmt_type tp) : type(tp){}
+    PmtErr(pmt_type tp) : TsErr(), type(tp){}
     virtual ~PmtErr(){}
 };
 
-class TransErr : public TsErr{};
+class TransErr : public TsErr
+{
+public:
+    TransErr(uint16_t p) : TsErr(p) {}
+};
 
 class CrcErr : public TsErr
 {
@@ -76,17 +88,32 @@ public:
     enum crc_type {CPAT = 0, CPMT, CCAT, CNIT, CEIT, CBAT, CSDT, CTOT};
     crc_type type;
 
-    CrcErr(){}
-    CrcErr(crc_type tp) : type(tp) {}
+    CrcErr(crc_type tp) : TsErr(), type(tp){}
     virtual ~CrcErr(){}
 };
 
 
-class PcrIntvErr : public TsErr{};
-class PcrDisErr : public TsErr{};
-class PcrAcuErr : public TsErr{};
+class PcrIntvErr : public TsErr
+{
+public:
+    PcrIntvErr(uint16_t p) : TsErr(p) {}
+};
+class PcrDisErr : public TsErr
+{
+public:
+    PcrDisErr(uint16_t p) : TsErr(p) {}
+};
+class PcrAcuErr : public TsErr
+{
+public:
+    PcrAcuErr(uint16_t p) : TsErr(p) {}
+};
 
-class PtsErr : public TsErr{};
+class PtsErr : public TsErr
+{
+public:
+    PtsErr(uint16_t p) : TsErr(p) {}
+};
 
 class CatErr : public TsErr
 {
@@ -94,8 +121,7 @@ public:
     enum cat_type {CTID = 0, CSRB};
     cat_type type;
     
-    CatErr(){}
-    CatErr(cat_type tp) : type(tp){}
+    CatErr(cat_type tp) : TsErr(), type(tp){}
     virtual ~CatErr(){}
 };
 

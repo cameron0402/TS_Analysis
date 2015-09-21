@@ -7,6 +7,8 @@ TSAnalysis::TSAnalysis(char* infile)
       sf(NULL),
       in_ts_file(),
       inf(NULL),
+      cur_file_size(0),
+      analyzed_file_size(0),
       pkt_sz(0),
       st_idx(-1),
       analyzing(false)
@@ -97,7 +99,11 @@ void TSAnalysis::set_err_timepos(TsErr* te)
     te->time = asctime(timeinfo);
 
     char tmp[128] = {0};
-    sprintf(tmp, "第0x%x字节， 第0x%x包", ftell(inf), sf->pkt_num);
+    sprintf(tmp, "第0x%x字节", ftell(inf));
+    if(te->pid != 0xFFFF)
+    {
+        sprintf(tmp, "%s, PID = 0x%x", tmp, te->pid);
+    }
     te->pos = tmp;
 }
 
@@ -150,13 +156,12 @@ void TSAnalysis::save_es(int pid, char* es_file)
 {
     uint16_t tpid;
     uint8_t test_buf[TS_MAX_PACKET_SIZE * 6] = {0};
-    /*if(inf == NULL)
-    return ;
-    clearerr(inf);
-    fseek(inf, 0, SEEK_SET);*/
+
     inf = fopen(in_ts_file, "rb");
-    fread((char*)test_buf, TS_MAX_PACKET_SIZE * 6, 1, inf);
-   
+    if(inf == NULL)
+        return ;
+
+    fread((char*)test_buf, TS_MAX_PACKET_SIZE * 6, 1, inf);   
     int st_idx = 0;
     int pkt_sz = 0;
     pkt_sz = get_packet_size(test_buf, TS_MAX_PACKET_SIZE * 6, &st_idx);
@@ -193,7 +198,7 @@ uint8_t* TSAnalysis::get_ts(uint16_t pid, uint32_t pkt_idx)
     FILE* fp = fopen(in_ts_file, "rb");
     if(fp != NULL)
     {
-        fseek(fp, st_idx + pkt_idx * pkt_sz, SEEK_SET);
+        _fseeki64(fp, (int64_t)st_idx + (int64_t)pkt_idx * pkt_sz, SEEK_SET);
         fread(ts, pkt_sz, 1, fp);
         fclose(fp);
         return ts;
@@ -202,20 +207,29 @@ uint8_t* TSAnalysis::get_ts(uint16_t pid, uint32_t pkt_idx)
     return NULL;
 }
 
+float TSAnalysis::get_analysing_progress()
+{
+    return 100.0 * analyzed_file_size / (float)cur_file_size;
+}
+
 void TSAnalysis::ts_analysis()
 {
     uint16_t pid;
     uint8_t test_buf[TS_MAX_PACKET_SIZE * 6] = {0};
-    /*if(inf == NULL)
-    return ;
 
-    clearerr(inf);
-    fseek(inf, 0, SEEK_SET);*/
     inf = fopen(in_ts_file, "rb");
-    fread((char*)test_buf, TS_MAX_PACKET_SIZE * 6, 1, inf);
+    if(inf == NULL)
+        return ;
 
     analyzing = true;
 
+    //get the file size
+    fseek(inf, 0, SEEK_END);
+    cur_file_size = _ftelli64(inf);
+    fseek(inf, 0, SEEK_SET);
+
+    //find the pkt_sz and ts start
+    fread((char*)test_buf, TS_MAX_PACKET_SIZE * 6, 1, inf);
     pkt_sz = get_packet_size(test_buf, TS_MAX_PACKET_SIZE * 6, &st_idx);
     if(pkt_sz == -1)
     {
@@ -224,15 +238,15 @@ void TSAnalysis::ts_analysis()
         return ;
     }
 
+    analyzed_file_size = 0;
     fseek(inf, st_idx, SEEK_SET);
-    //inf.seekg(st_idx, inf.beg);
     sf = TSFactory::GetInstance();
     while(!feof(inf))
     {
         try
         {
-            //inf.read((char*)test_buf, pkt_sz);
             fread(test_buf, pkt_sz, 1, inf);
+            analyzed_file_size += pkt_sz;
             if(test_buf[0] != 0x47)
                 throw new SyncErr();
 

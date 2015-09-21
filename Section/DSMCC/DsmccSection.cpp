@@ -103,11 +103,6 @@ ESGInfo::~ESGInfo()
         delete (*dit);
     }
 
-    /*std::set<ObjDsmcc*, cmp_secp<ObjDsmcc>>::iterator oit = obj_list.begin();
-    for(; oit != obj_list.end(); ++oit)
-    {
-    delete (*oit);
-    }*/
     obj_list.clear();
 }
 
@@ -238,9 +233,11 @@ void ESGInfo::saveDIIInfo(DsmccSection* dss)
 {
     bool update = false;
     DII* dii = new DII(dss->dsmcc_data);
-    std::set<DII*, cmp_secp<DII>>::iterator dit;
+    std::set<DII*, cmp_secp<DII>>::iterator dit = dii_list.begin();
 
-    for(dit = dii_list.begin(); dit != dii_list.end(); ++dit)
+    bool fd = false;
+
+    for(; dit != dii_list.end(); ++dit)
     {
         if((*dii) == *(*dit))
         {
@@ -250,8 +247,7 @@ void ESGInfo::saveDIIInfo(DsmccSection* dss)
         }
         else
         {
-            if(dii->dsmh->transactionId == (*dit)->dsmh->transactionId &&
-                dii->check_sum != (*dit)->check_sum)
+            if(dii->dsmh->transactionId == (*dit)->dsmh->transactionId)
             {
                 update = true;
                 break;
@@ -266,9 +262,11 @@ void ESGInfo::saveDIIInfo(DsmccSection* dss)
 
     if(dii != NULL)
     {
-        dii->getDetail();
         dii_list.insert(dii);
+        dii->getDetail();
     }
+
+   
 }
 
 void ESGInfo::saveDDBData(DsmccSection* dss)
@@ -419,6 +417,8 @@ void ESGInfo::reset()
     {
         delete (*oit);
     }
-    obj_list.clear();    
+    obj_list.clear();
+
+    check_sum = 0;
 }
 

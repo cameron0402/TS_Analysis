@@ -1,10 +1,5 @@
 #include "RegistrationDesc.h"
-//##ModelId=555831B202CA
-RegistrationDesc::RegistrationDesc()
-{
-}
 
-//##ModelId=555831BF009B
 RegistrationDesc::RegistrationDesc(uint8_t* data) 
     : Descriptor(data),
       format_identifier((data[2] << 24) | (data[3] << 16) | (data[4] << 8) | data[5])

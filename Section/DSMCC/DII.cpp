@@ -229,9 +229,9 @@ DII::DII()
 uint32_t DII::get_check_sum()
 {
     check_sum = dsmh->message_length + dsmh->transactionId;
-    for(int i = -6; i < 6; ++i)
+    for(int i = 0; i < dsmh->message_length; ++i)
     {
-        check_sum += raw_dii_data[dsmh->message_length + i] * raw_dii_data[dsmh->message_length + i];
+        check_sum += raw_dii_data[i + 8] * raw_dii_data[i + 8];
     }
     return check_sum;
 }
@@ -258,8 +258,6 @@ void DII::getDetail()
     for(i = 0; i < module_number; ++i)
     {
         DII::Module* md = new DII::Module(pd + idx, block_size);
-        /*if(md->err_flag)
-            throw DsmccErr();*/
         mod_list.insert(md);
         idx += md->module_info_length + 8;
     }
@@ -271,6 +269,7 @@ void DII::getDetail()
 }
 
 DII::DII(uint8_t* data)
+    : check_sum(0)
 {
    dsmh = new DsmccMessageHeader(data);
    raw_dii_data = new uint8_t[dsmh->message_length + 12];

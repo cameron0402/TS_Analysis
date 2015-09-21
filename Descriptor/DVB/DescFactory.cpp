@@ -69,6 +69,7 @@
 #include "AssociationTagDesc.h"
 #include "CarouselIdentifierDesc.h"
 #include "LogicalChannelDesc.h"
+#include "DraAudioStreamDesc.h"
 
 //##ModelId=55585690038B
 Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
@@ -149,8 +150,9 @@ Descriptor* DescFactory::createDesc(uint8_t type, uint8_t* data)
         case 0x7C: return new AACDesc(data);
         case 0x7F: return new ExtensionDesc(data);
 
-        //
+        // ~:)
         case 0x83: return new LogicalChannelDesc(data);
+        case 0xA0: return new DraAudioStreamDesc(data);
   
         //descriptors that can't find definitions
         case 0x6F: //Application_signalling_descriptor

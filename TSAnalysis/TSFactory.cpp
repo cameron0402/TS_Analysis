@@ -1,6 +1,7 @@
 #include "TSFactory.h"
 #include "TSData.h"
 #include "PES/AdaptationField.h"
+#include "../Descriptor/DVB/RegistrationDesc.h"
 
 Stream::Stream(PMT::StreamInfo* si)
     : stream_pid(si->elem_PID),
@@ -28,7 +29,14 @@ Stream::Stream(PMT::StreamInfo* si)
         if((*dit)->tag == 0x09) //CA_descriptor
         {
             scrambling = true;
-            break;
+        }
+
+        if((*dit)->tag == 0x05) //dra audio
+        {
+            if(((RegistrationDesc*)(*dit))->format_identifier == 0x44524131)
+            {
+                stream_type = &STREAM_TYPE_TABLE[54];
+            }
         }
     }
 }
@@ -298,7 +306,8 @@ bool TSFactory::continuityCheck(uint8_t* ts_packet, TSData* raw_ts, bool& cc_err
 
         if(expected_counter != raw_ts->continuity_counter)
         {
-            raw_ts->Reset();
+            if(raw_ts->type.type == TS_TYPE_SECTION)
+                raw_ts->Reset();
             cc_err = true;
         }
     }
@@ -391,7 +400,7 @@ void TSFactory::PESAnalysis(TSData* raw_ts)
 
                             if(pts_inv > 700 || pts_inv < -700)
                             {
-                                throw new PtsErr();
+                                throw new PtsErr(raw_ts->PID);
                             }
                         }
                     } 
@@ -444,16 +453,18 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
         return ;
     }
 
+    if(ts_packet[1] >> 7)
+    {
+        throw new TransErr(raw_ts->PID);
+        return ;
+    }
+
     /* Analysis the adaptation_field if present */
     uint8_t adp_ctr = (ts_packet[3] & 0x30) >> 4;
     if(adp_ctr == 0x02 || adp_ctr == 0x03)
         payload_pos = ts_packet + adaptationFieldAnalysis(ts_packet, raw_ts, pcr_inv_err, pcr_dis_err, pcr_acu_err);
     else
         payload_pos = ts_packet + 4;
-
-    /* Continuity check */
-    if(!continuityCheck(ts_packet, raw_ts, cc_err))
-        return ;
 
     /* Unit start -> deal the last Section or PES first, then start gather a new one */
     if(ts_packet[1] & 0x40)
@@ -469,7 +480,7 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
             raw_ts->recv_flag = true;
             raw_ts->ts_data_length = (((payload_pos[1] & 0x0F) << 8) | payload_pos[2]) + 3;
         }
-        
+
         if(raw_ts->type.type == TS_TYPE_PES)
         {
             if(raw_ts->recv_length != 0)
@@ -484,6 +495,10 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
                 raw_ts->ts_data_length = TSData::MAX_TS_LENGTH;
         }
     }
+
+    /* Continuity check */
+    if(!continuityCheck(ts_packet, raw_ts, cc_err))
+        return ;
 
     /* gather the remaining payload into raw_ts */
     if(raw_ts->recv_flag)
@@ -505,19 +520,19 @@ void TSFactory::TSGather(int pid, uint8_t* ts_packet)
 
     if(cc_err)
     {
-        throw new CCErr();
+        throw new CCErr(raw_ts->PID);
     }
     if(pcr_dis_err)
     {
-        throw new PcrDisErr();
+        throw new PcrDisErr(raw_ts->PID);
     }
     if(pcr_inv_err)
     {
-        throw new PcrIntvErr();
+        throw new PcrIntvErr(raw_ts->PID);
     }
     if(pcr_acu_err)
     {
-        throw new PcrAcuErr();
+        throw new PcrAcuErr(raw_ts->PID);
     }
   
     return ;

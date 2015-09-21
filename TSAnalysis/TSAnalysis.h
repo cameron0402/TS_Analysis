@@ -96,10 +96,12 @@ public:
     uint8_t* get_ts(uint16_t pid, uint32_t pkt_idx);
     //uint8_t* get_section(int pid, int pkt_st, int pkt_idx);
     //uint8_t* get_pes(int pid, int pkt_st, int pkt_idx);
-    //char* get_analysis_file();
+
+    float get_analysing_progress();
 
     TS_err ts_err;
     TSFactory* sf;
+
     int pkt_sz;
     int st_idx; //address of first 0x47 
     bool analyzing;
@@ -112,6 +114,9 @@ private:
     void set_err_timepos(TsErr* te);
 
     FILE* inf;
+    int64_t cur_file_size;
+    int64_t analyzed_file_size;
+    
     char in_ts_file[128];
 };
 
